@@ -16,11 +16,17 @@ Untuk menjadikan aplikasi ini milik sekolah anda secara percuma, sila ikuti lang
 2. Pastikan anda menggunakan akaun DELIMa peribadi (`g-12345678@moe-dl.edu.my`) atau akaun DELIMa sekolah (`sekolah-0000-xxx@moe-dl.edu.my`) untuk membuka pautan di atas.
 3. Tekan butang `Make a copy`.
 
+<img src="IMG/ss_m01.png" />
+
 ### 2. Konfigurasi Asas
 
 1. Tukar nama fail Google Sheet yang disalin kepada nama yang deskriptif (contoh: buang "Copy of " dan tambah nama sekolah anda di hujung nama Google Sheet).
 2. Buka sheet **"GURU"** dan isikan emel DELIMa guru, nama guru sekolah, serta jawatan, jantina dan opsyen (boleh dibiarkan kosong dahulu untuk diisikan sendiri oleh guru berkenaan). Bagi lajur 'Pencerap', tulis 'ya' jika guru tersebut adalah pencerap yang akan menilai, sebaliknya tulis 'tidak' atau biarkan kosong. Bagi 'Pencerap', senarai guru ini dapat diuruskan kemudian dalam antara muka aplikasi.
 3. Buka sheet **"TETAPAN"** dan isikan maklumat sekolah.
+
+<img src="IMG/ss_m02.png" />
+<img src="IMG/ss_m03.png" />
+<img src="IMG/ss_m04.png" />
 
 ### 3. Tetapan Apps Script
 
@@ -34,6 +40,15 @@ Untuk menjadikan aplikasi ini milik sekolah anda secara percuma, sila ikuti lang
 8. Selepas dikembalikan ke Apps Script, klik butang `Copy` untuk menyalin URL baharu ini, kemudian klik `Done`. (Anda kini boleh menutup tab Apps Script Editor).
 9. Kembali ke Google Sheet sheet **"TETAPAN"**, dan tampalkan URL ini (_Paste_ / _Ctrl+V_) pada **sel B4** (bersebelahan teks **URL Web App**).
 
+<img src="IMG/ss_m05.png" />
+<img src="IMG/ss_m06.png" />
+<img src="IMG/ss_m07.png" />
+<img src="IMG/ss_m08.png" />
+<img src="IMG/ss_m09.png" />
+<img src="IMG/ss_m10.png" />
+<img src="IMG/ss_m11.png" />
+<img src="IMG/ss_m12.png" />
+
 ### 4. Pemasangan Sistem
 
 1. Pada bar menu atas Google Sheet, klik **⚙️ Instrumen Bestari PPdP** → **🚀 Pasang dan Sahkan Sistem**.
@@ -41,6 +56,9 @@ Untuk menjadikan aplikasi ini milik sekolah anda secara percuma, sila ikuti lang
 3. **Selesai!** Anda boleh melalukan kursor pada URL di sel B4 dan klik pautan _pop-over_ tersebut untuk melancarkan aplikasi.
 
 > 💡 **MAKLUMAN:** Kongsikan **URL di sel B4** kepada rakan guru untuk kegunaan sekolah anda.
+
+<img src="IMG/ss_m13.png" />
+<img src="IMG/ss_m14.png" />
 
 ---
 
@@ -85,6 +103,13 @@ Untuk menjadikan aplikasi ini milik sekolah anda secara percuma, sila ikuti lang
 9. Klik pada setiap butang `📄Buka Pra-Isi Pintar` di hujung baris setiap data pencerapan guru untuk membuka Google Form dengan data yang telah dipra-isi.
 10. Klik `Submit` atau `Hantar` pada Google Form untuk menghantar data pencerapan bagi guru berkenaan, kemudian anda boleh menutup Google Form tersebut.
 11. Anda akan disoal untuk pengesahan penghantaran tersebut. Sila jawab mengikut tindakan anda dalam Google Form tersebut.
+
+<img src="IMG/ss_k01.png" />
+<img src="IMG/ss_k02.png" />
+<img src="IMG/ss_k03.png" />
+<img src="IMG/ss_k04.png" />
+<img src="IMG/ss_k05.png" />
+<img src="IMG/ss_k06.png" />
 
 ---
 
