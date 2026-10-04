@@ -22,7 +22,7 @@ function onOpen(e) {
     var ui = SpreadsheetApp.getUi();
     ui.createMenu("⚙️ Instrumen Bestari PPdP")
       .addItem(
-        "🚀 Setup Instrumen Bestari PPdP",
+        "🚀 Pasang dan Sahkan Sistem",
         "setupInstrumenBestari",
       )
       .addSeparator()
@@ -201,9 +201,8 @@ function setupInstrumenBestari() {
     } catch (e) {}
 
     var mesej =
-      "✅ Setup Instrumen Bestari PPdP Berjaya Diselaraskan!\n\n" +
-      "Seni Bina: 1 Deployment Sahaja (Owner Relay - DELIMa Domain)\n\n" +
-      "Data berikut telah dibaca dari tab TETAPAN (B5:B9) & tab GURU, lalu disegerakkan ke Properties:\n\n" +
+      "✅ Pemasangan Instrumen Bestari PPdP Berjaya!\n\n" +
+      "Data berikut telah dibaca dari tab TETAPAN (B5:B9) & tab GURU, lalu disegerakkan:\n\n" +
       "• Kod Sekolah : " +
       (sekolahObj.kodSekolah || "(Kosong)") +
       "\n" +
@@ -221,8 +220,8 @@ function setupInstrumenBestari() {
       "\n\n" +
       "• Pencerap Berdaftar : " +
       bilPencerap +
-      " orang (Disimpan ke Properties)\n" +
-      "• Teks Literal Rubrik & Pilihan : Disegerakkan ke ScriptProperties (" +
+      " orang (Telah disimpan)\n" +
+      "• Teks Literal Rubrik & Pilihan : Telah disegerakkan (" +
       hasilLiteral.bilTabDisegerak +
       " tab)\n" +
       "• URL Web App (B4) : " +
@@ -234,10 +233,10 @@ function setupInstrumenBestari() {
     if (!webAppUrl) {
       mesej +=
         "\n\n⚠️ PERINGATAN PENTING:\n" +
-        "Sel B4 tab TETAPAN masih kosong. Sila salin Web app URL dari Apps Script UI (Deploy > Manage deployments), tampal ke sel B4, dan jalankan Setup Instrumen Bestari sekali lagi.";
+        "Sel B4 tab TETAPAN masih kosong. Sila salin Web app URL dari Apps Script UI (Deploy > Manage deployments), tampal ke sel B4, dan jalankan Pemasangan Instrumen Bestari PPdP sekali lagi.";
     }
 
-    ui.alert("Setup Selesai", mesej, ui.ButtonSet.OK);
+    ui.alert("Pemasangan Selesai", mesej, ui.ButtonSet.OK);
     return {
       success: true,
       sekolah: sekolahObj,
@@ -247,8 +246,8 @@ function setupInstrumenBestari() {
     };
   } catch (err) {
     ui.alert(
-      "Ralat Setup",
-      "Gagal menjalankan Setup: " + err.message,
+      "Ralat Pemasangan",
+      "Gagal menjalankan Pemasangan: " + err.message,
       ui.ButtonSet.OK,
     );
     return { success: false, error: err.message };
