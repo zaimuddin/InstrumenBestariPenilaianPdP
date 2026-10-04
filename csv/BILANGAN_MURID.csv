@@ -1,0 +1,6 @@
+﻿id,julat_bilangan,min_murid,max_murid
+1,"0 – 10 orang",0,10
+2,"11 – 20 orang",11,20
+3,"21 – 30 orang",21,30
+4,"31 – 50 orang",31,50
+5,"Lebih 50 orang",51,999

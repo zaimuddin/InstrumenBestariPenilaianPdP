@@ -1,0 +1,7 @@
+﻿tahap_id,skor_min,skor_max,julat_label,ringkasan,status_lencana,warna_tema,penerangan
+0,0,0,"0%","-","Belum Selesai","slate","Belum lengkap / belum dicerap."
+1,1,40,"≤ 40%","Tidak Memenuhi","Tidak Memenuhi","rose","Tidak memenuhi tahap minimum pembudayaan KBAT dalam PdP."
+2,41,50,"41% – 50%","Minimum","Minimum","orange","Telah mencapai tahap minimum pembudayaan KBAT dalam PdP serta boleh dibimbing untuk penambahbaikan."
+3,51,60,"51% – 60%","Sederhana","Sederhana","amber","Telah mencapai tahap sederhana pembudayaan KBAT dalam PdP serta boleh dibimbing untuk penambahbaikan."
+4,61,80,"61% – 80%","Baik","Baik","blue","Telah mencapai tahap baik pembudayaan KBAT dalam PdP."
+5,81,100,"81% – 100%","Cemerlang","Cemerlang","emerald","Telah membudayakan KBAT dalam PdP secara cemerlang, konsisten dan menyeluruh."

@@ -1,0 +1,3626 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integrasi Pintar Google Forms Pengisian Skor JPN - ISPPK KBAT</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- dompdf.js CDN (DOM-to-Vector-PDF) -->
+  <script src="https://cdn.jsdelivr.net/npm/dompdf.js@latest/dist/dompdf.min.js"></script>
+
+  <script>
+    /**
+     * Aplikasi Instrumen Bestari Penilaian PdP v2026.09
+     * Dibangunkan oleh: Ustaz Zaimuddin Hassan (Guru Al-Quran & Bahasa Arab, SMK Padang Pak Amat, Pasir Puteh, Kelantan)
+     * CC BY-NC-SA 2026 SolusiBestariGuru (t.me/solusibestariguru)
+    **/
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    /* Standard Scrollbar untuk Ruangan Pilihan Item Google Form */
+    .standard-scrollbar {
+      scrollbar-width: auto;
+      scrollbar-color: #94a3b8 #f1f5f9;
+    }
+    .standard-scrollbar::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    .standard-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 6px;
+    }
+    .standard-scrollbar::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 6px;
+      border: 2px solid #f1f5f9;
+    }
+    .standard-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    /* Sticky Header Jadual Guru di bawah Header Utama (h-14 = 3.5rem pada mobile, h-16 = 4rem pada desktop) */
+    .sticky-table-th {
+      position: sticky;
+      top: 3.5rem;
+      z-index: 20;
+      background-color: rgba(241, 245, 249, 0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 1px 0 0 #cbd5e1, 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+    }
+    @media (min-width: 640px) {
+      .sticky-table-th {
+        top: 4rem;
+      }
+    }
+    /* Sembunyikan Info Pencerap & Info Sekolah sepenuhnya pada Paparan Mudah Alih */
+    @media (max-width: 639px) {
+      #pencerapChip,
+      #sekolahChip {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- ===================================================================== -->
+  <!-- 1. HEADER APLIKASI & NAVIGASI PENGGUNA                                -->
+  <!-- ===================================================================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14 sm:h-16">
+
+        <!-- Logo & Tajuk Modul -->
+        <div class="flex items-center space-x-2.5 sm:space-x-3">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white text-lg sm:text-xl shadow-md shrink-0">
+            📋
+          </div>
+          <div>
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+              <h1 class="text-sm sm:text-lg font-bold text-slate-900 leading-tight">Integrasi Pintar Google Forms</h1>
+              <span class="bg-emerald-100 text-emerald-800 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-semibold border border-emerald-200">
+                ISPPK
+              </span>
+            </div>
+            <p class="text-[10px] sm:text-xs text-slate-500 truncate max-w-[200px] sm:max-w-none">Modul Pemetaan Elemen & Penghantaran Skor</p>
+          </div>
+        </div>
+
+        <!-- Butiran Pencerap, Sekolah & Butang Keluar -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <!-- Info Pencerap Chip -->
+          <div id="pencerapChip" class="hidden sm:flex items-center bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700">
+            <span class="mr-1.5">👤</span>
+            <div>
+              <div id="lblNamaPencerap" class="font-bold text-slate-900 truncate max-w-[180px]">Pencerap</div>
+              <div id="lblEmelPencerap" class="text-slate-500 font-mono text-[10px] truncate max-w-[180px]">-</div>
+            </div>
+          </div>
+
+          <!-- Info Sekolah Chip -->
+          <div id="sekolahChip" class="hidden md:flex items-center bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-1.5 text-xs text-indigo-900">
+            <span class="mr-1.5">🏫</span>
+            <div>
+              <div id="lblNamaSekolah" class="font-bold truncate max-w-[200px]">Sekolah</div>
+              <div id="lblPpdNegeri" class="text-indigo-600 text-[10px] truncate max-w-[200px]">-</div>
+            </div>
+          </div>
+
+          <!-- Butang Tutup / Keluar Modul -->
+          <button
+            id="btnTutupModul"
+            onclick="handleTutupModul()"
+            class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 sm:space-x-1.5 transition shadow-sm shrink-0"
+            title="Tutup modul ini dan kembali ke Instrumen Bestari Penilaian PdP"
+          >
+            <span>✕</span>
+            <span class="hidden sm:inline">Tutup</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 2. KANDUNGAN UTAMA                                                    -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+
+    <!-- KAD 1: INPUT URL GOOGLE FORM JPN -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-5 transition hover:shadow-md">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3 mb-3">
+        <div>
+          <label for="inputFormUrl" class="block text-xs sm:text-sm font-bold text-slate-900 flex items-center space-x-2">
+            <span>🔗 Pautan Borang Pengisian Skor ISPPK JPN (Negeri)</span>
+            <span id="badgeUrlStatus" class="bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md font-medium">
+              Belum Disemak
+            </span>
+          </label>
+          <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+            Tampal URL Google Forms khusus sesuatu negeri (menyokong format penuh <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600">docs.google.com/forms/...</code> atau pautan pendek <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600">forms.gle/...</code>).
+          </p>
+        </div>
+        <div class="flex items-center space-x-2 self-end md:self-auto shrink-0">
+          <button
+            id="btnTampalPantas"
+            onclick="handleTampalClipboard()"
+            class="text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg font-medium transition flex items-center space-x-1"
+          >
+            <span>📋</span>
+            <span class="hidden sm:inline">Tampal Pautan</span>
+            <span class="sm:hidden">Tampal</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="relative">
+        <input
+          type="url"
+          id="inputFormUrl"
+          placeholder="https://docs.google.com/forms/d/e/.../viewform atau https://forms.gle/..."
+          class="w-full text-xs sm:text-base px-3.5 py-2.5 sm:px-4 sm:py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition pr-24 sm:pr-28 text-slate-800 placeholder-slate-400 font-mono"
+          oninput="handleUrlInputChange()"
+        >
+        <button
+          id="btnSahkanUrl"
+          onclick="handleTriggerDapatkanElemen()"
+          class="absolute right-1.5 sm:right-2 top-1.5 bottom-1.5 sm:top-2 sm:bottom-2 bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm flex items-center space-x-1 sm:space-x-1.5 transition shadow-sm"
+        >
+          <span>⚡</span>
+          <span class="hidden sm:inline">Proses URL</span>
+          <span class="sm:hidden">Proses</span>
+        </button>
+      </div>
+
+      <!-- Pilihan Profil Akaun Google (DELIMa) untuk Multi-Login -->
+      <div class="mt-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+        <div class="flex items-center space-x-2">
+          <span class="text-sm">👤</span>
+          <span class="font-bold text-slate-700">Profil Log Masuk Google (DELIMa):</span>
+          <span class="text-slate-500 hidden md:inline">Pilih slot profil Google yang aktif dengan sesi DELIMa di pelayar anda</span>
+        </div>
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+          <select
+            id="selGoogleAccountIndex"
+            onchange="handleTukarProfilGoogle(this.value)"
+            class="w-full sm:w-auto bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm cursor-pointer"
+          >
+            <option value="1">Akaun #2 (/u/1/) - Rasmi DELIMa (Disyorkan)</option>
+            <option value="0">Akaun #1 (/u/0/) - Akaun Utama / Peribadi</option>
+            <option value="2">Akaun #3 (/u/2/) - Akaun Tambahan</option>
+            <option value="3">Akaun #4 (/u/3/) - Akaun Tambahan</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Notis URL Resolusi Jika Pautan Pendek -->
+      <div id="infoResolvedUrlContainer" class="hidden mt-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+        <div class="truncate mr-2">
+          <span class="font-semibold text-slate-700">Pautan Sebenar:</span>
+          <span id="lblResolvedUrl" class="font-mono text-slate-500 ml-1 truncate"></span>
+        </div>
+        <span class="text-emerald-600 font-semibold flex items-center space-x-1 shrink-0">
+          <span>✓</span>
+          <span>Disahkan</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 3. NAVIGASI TABS (3 TABS SISTEM)                                       -->
+    <!-- ===================================================================== -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+
+      <!-- Tab Headers -->
+      <div class="border-b border-slate-200 bg-slate-200/70 px-2 sm:px-4 pt-2 sm:pt-3 flex flex-nowrap sm:flex-wrap items-center gap-1.5 sm:gap-2 overflow-x-auto rounded-t-2xl no-scrollbar">
+
+        <!-- Tab 1: Senarai Elemen Soalan -->
+        <button
+          id="tabBtn1"
+          onclick="switchTab(1)"
+          class="tab-btn px-2.5 sm:px-4 py-2 sm:py-3 rounded-t-xl font-semibold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border-b-2 border-emerald-600 text-emerald-700 bg-white shadow-sm transition shrink-0 whitespace-nowrap"
+        >
+          <span class="text-sm sm:text-base">📝</span>
+          <span><span class="hidden sm:inline">1. Senarai Elemen Soalan</span><span class="sm:hidden">1. Elemen</span></span>
+          <span id="badgeCountElemen" class="ml-1 bg-emerald-100 text-emerald-800 text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
+            0
+          </span>
+        </button>
+
+        <!-- Tab 2: Pemetaan Elemen Soalan -->
+        <button
+          id="tabBtn2"
+          onclick="switchTab(2)"
+          class="tab-btn px-2.5 sm:px-4 py-2 sm:py-3 rounded-t-xl font-semibold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition shrink-0 whitespace-nowrap"
+        >
+          <span class="text-sm sm:text-base">🔄</span>
+          <span><span class="hidden sm:inline">2. Pemetaan Elemen Soalan</span><span class="sm:hidden">2. Pemetaan</span></span>
+          <span id="badgeStatusPemetaan" class="ml-1 bg-slate-200 text-slate-700 text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-medium">
+            Belum 🗺️
+          </span>
+        </button>
+
+        <!-- Tab 3: Hantar ke Google Forms (Terkunci sehinggalah pemetaan selesai) -->
+        <button
+          id="tabBtn3"
+          onclick="switchTab(3)"
+          disabled
+          class="tab-btn px-2.5 sm:px-4 py-2 sm:py-3 rounded-t-xl font-semibold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border-b-2 border-transparent text-slate-400 cursor-not-allowed opacity-60 transition shrink-0 whitespace-nowrap"
+          title="Lengkapkan dan simpan pemetaan elemen soalan terlebih dahulu untuk mengaktifkan tab ini"
+        >
+          <span class="text-sm sm:text-base">🚀</span>
+          <span><span class="hidden sm:inline">3. Hantar ke Google Forms</span><span class="sm:hidden">3. Hantar GF</span></span>
+          <span id="lockBadgeTab3" class="ml-1 text-xs">🔒</span>
+        </button>
+
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB CONTENT 1: SENARAI ELEMEN SOALAN                                -->
+      <!-- =================================================================== -->
+      <div id="tabContent1" class="p-3.5 sm:p-6 space-y-4 sm:space-y-6">
+
+        <!-- Toolbar Tindakan Tab 1 -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Pengekstrakan Elemen Soalan Google Form</h3>
+            <p class="text-xs text-slate-500">Sistem akan mengekstrak struktur soalan, jenis input dan pilihan jawapan daripada borang.</p>
+          </div>
+          <button
+            id="btnDapatkanElemen"
+            onclick="handleTriggerDapatkanElemen()"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center space-x-1.5 sm:space-x-2 transition shadow-sm shrink-0"
+          >
+            <span id="iconDapatkanElemen">🔍</span>
+            <span id="txtDapatkanElemen"><span class="hidden sm:inline">Dapatkan Elemen Soalan</span><span class="sm:hidden">Dapatkan Elemen</span></span>
+          </button>
+        </div>
+
+        <!-- Ruang Maklumat Borang & Metrik Ringkas -->
+        <div id="metaBorangContainer" class="hidden grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-4">
+          <div class="sm:col-span-3 bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 sm:p-3.5">
+            <div class="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">Tajuk Borang Google</div>
+            <div id="lblFormTitle" class="text-sm font-bold text-slate-900 mt-1 truncate">-</div>
+          </div>
+          <div class="sm:col-span-1 bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 sm:p-3.5">
+            <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Jumlah Elemen Dikesan</div>
+            <div id="lblFormTotalItems" class="text-sm font-bold text-slate-900 mt-1">0 Elemen</div>
+          </div>
+          <div class="sm:col-span-1 bg-amber-50/60 border border-amber-100 rounded-xl p-3 sm:p-3.5">
+            <div class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Status Pemetaan</div>
+            <div id="lblFormMappingStatus" class="text-sm font-bold text-slate-900 mt-1">Sedia untuk dipetakan</div>
+          </div>
+        </div>
+
+        <!-- Container Senarai Kad Elemen Soalan -->
+        <div id="containerElemenSoalan" class="space-y-3">
+          <!-- Placeholder State Kosong -->
+          <div id="placeholderElemenKosong" class="text-center py-10 sm:py-12 px-4 border-2 border-dashed border-slate-200 rounded-2xl bg-white">
+            <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-2xl text-slate-400 mb-3">
+              📝
+            </div>
+            <h4 class="text-sm font-bold text-slate-800">Belum Ada Elemen Soalan</h4>
+            <p class="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
+              Masukkan URL Google Form di bahagian atas dan tekan butang <strong>'Dapatkan Elemen Soalan'</strong> untuk memuatkan senarai soalan borang negeri.
+            </p>
+          </div>
+
+          <!-- Elemen Items List (Dinamik dijanakan oleh JS) -->
+          <div id="listElemenItems" class="hidden space-y-3"></div>
+        </div>
+
+        <!-- Footer Butang Mara ke Tab 2 -->
+        <div id="footerTab1" class="hidden flex justify-end pt-4 border-t border-slate-100">
+          <button
+            onclick="switchTab(2)"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 transition shadow-sm"
+          >
+            <span class="hidden sm:inline">Teruskan ke Pemetaan Elemen</span>
+            <span class="sm:hidden">Seterusnya</span>
+            <span>➔</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB CONTENT 2: PEMETAAN ELEMEN SOALAN                               -->
+      <!-- =================================================================== -->
+      <div id="tabContent2" class="hidden p-3.5 sm:p-6 space-y-4 sm:space-y-6">
+
+        <!-- Header & Action Bar Tab 2 -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Pemetaan Elemen Soalan Google Form dengan Data ISPPK Sekolah Anda</h3>
+            <p class="text-xs text-slate-500">
+              Padankan setiap <span class="font-semibold text-slate-700">elemen soalan Google Form</span> dengan lajur data dalam <span class="font-semibold text-slate-700">pangkalan data PENGISIAN ISPPK</span>.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <!-- Butang Auto-Padan Pintar -->
+            <button
+              id="btnAutoPadan"
+              onclick="handleAutoPadanPintar()"
+              class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl font-semibold text-xs flex items-center space-x-1.5 transition shadow-sm"
+              title="Padankan elemen soalan secara automatik berdasarkan persamaan kata kunci tajuk soalan"
+            >
+              <span>⚡</span>
+              <span class="hidden sm:inline">Auto-Padan Pintar</span>
+              <span class="sm:hidden">Auto-Padan</span>
+            </button>
+
+            <!-- Butang Simpan Pemetaan -->
+            <button
+              id="btnSimpanPemetaan"
+              onclick="handleSimpanPemetaan()"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl font-semibold text-xs flex items-center space-x-1.5 transition shadow-sm"
+            >
+              <span>💾</span>
+              <span class="hidden sm:inline">Simpan Pemetaan</span>
+              <span class="sm:hidden">Simpan</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panduan Pemetaan Alert -->
+        <div class="bg-sky-50 border border-sky-200 text-sky-900 rounded-xl p-3 sm:p-3.5 text-xs flex items-start space-x-2.5">
+          <span class="text-base shrink-0 mt-0.5">💡</span>
+          <div class="leading-relaxed">
+            <strong>Petua Pemetaan:</strong> Pilih medan yang bersesuaian daripada dropdown untuk setiap elemen soalan. Jika elemen soalan Google Form mempunyai pilihan tetap (dropdown/radio), anda boleh memadankan sub-pilihan jawapan dengan tepat. Tekan <strong>'Simpan Pemetaan'</strong> setelah selesai untuk membuka kunci Tab 3.
+          </div>
+        </div>
+
+        <!-- Mapping List / Table Container -->
+        <div id="containerPemetaanList" class="space-y-4">
+          <!-- Placeholder State Kosong -->
+          <div id="placeholderPemetaanKosong" class="text-center py-10 sm:py-12 px-4 border-2 border-dashed border-slate-200 rounded-2xl bg-white">
+            <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-2xl text-slate-400 mb-3">
+              🔄
+            </div>
+            <h4 class="text-sm font-bold text-slate-800">Elemen Soalan Belum Dikenal Pasti</h4>
+            <p class="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
+              Sila dapatkan elemen soalan terlebih dahulu dalam Tab 1 sebelum membuat pemetaan medan.
+            </p>
+            <button
+              onclick="switchTab(1)"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 sm:px-4 py-2 rounded-xl font-semibold text-xs inline-flex items-center space-x-1.5 transition"
+            >
+              <span>➔ Kembali ke Tab 1</span>
+            </button>
+          </div>
+
+          <!-- Pemetaan Items (Dinamik dijanakan oleh JS) -->
+          <div id="listPemetaanItems" class="hidden space-y-4"></div>
+        </div>
+
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB CONTENT 3: HANTAR KE GOOGLE FORMS                               -->
+      <!-- =================================================================== -->
+      <div id="tabContent3" class="hidden p-3.5 sm:p-6 space-y-4 sm:space-y-6">
+
+        <!-- Header Tab 3 -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-emerald-50/70 p-3.5 sm:p-4 rounded-xl border border-emerald-200">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-base">🚀</span>
+              <h3 class="text-sm font-bold text-emerald-950">Senarai Guru Lengkap Skor Muktamad (M)</h3>
+            </div>
+            <p class="text-xs text-emerald-800 mt-0.5">
+              Hanya rekod pencerapan dengan semua markah muktamad (M) lengkap dipaparkan untuk penghantaran.
+            </p>
+          </div>
+
+          <div class="flex items-center space-x-2 shrink-0">
+            <span
+              id="badgeTab3GoogleProfile"
+              class="bg-indigo-100 text-indigo-800 text-[11px] px-2.5 py-1 rounded-lg font-semibold flex items-center space-x-1 truncate max-w-[170px] sm:max-w-none"
+              title="Borang Google Forms dibuka menggunakan slot profil Google ini (DELIMa)"
+            >
+              <span>👤</span>
+              <span id="lblTab3GoogleProfile" class="truncate">Slot DELIMa (/u/1/)</span>
+            </span>
+            <button
+              onclick="handleMuatSemulaRekodGuru()"
+              class="bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 sm:space-x-1.5 transition shadow-sm shrink-0"
+              title="Segarkan semula senarai guru daripada sheet PENGISIAN"
+            >
+              <span>🔄</span>
+              <span class="hidden sm:inline">Segar Semula</span>
+              <span class="sm:hidden">Segar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Carian Guru & Metrik -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <div class="relative w-full sm:w-80">
+              <input
+                type="text"
+                id="inputCariGuru"
+                placeholder="Cari nama guru, subjek, atau kelas..."
+                class="w-full text-xs sm:text-sm pl-9 pr-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                oninput="handleFilterGuruTable()"
+              >
+              <span class="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
+            </div>
+            <button
+              type="button"
+              id="btnSimpanPDFGuru"
+              onclick="handleSimpanPDFJadualGuru()"
+              class="bg-rose-700 hover:bg-rose-800 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition flex items-center space-x-1.5 shrink-0 active:scale-95"
+              title="Jana dan Simpan Laporan PDF Jadual Guru Untuk Penghantaran"
+            >
+              <svg class="w-4 h-4 fill-white shrink-0" viewBox="0 0 512 512" aria-hidden="true">
+                <path d="M142.024,310.194c0-8.007-5.556-12.782-15.359-12.782c-4.003,0-6.714,0.395-8.132,0.773v25.69 c1.679,0.378,3.743,0.504,6.588,0.504C135.57,324.379,142.024,319.1,142.024,310.194z"/>
+                <path d="M202.709,297.681c-4.39,0-7.227,0.379-8.905,0.772v56.896c1.679,0.394,4.39,0.394,6.841,0.394 c17.809,0.126,29.424-9.677,29.424-30.449C230.195,307.231,219.611,297.681,202.709,297.681z"/>
+                <path d="M315.458,0H121.811c-28.29,0-51.315,23.041-51.315,51.315v189.754h-5.012c-11.418,0-20.678,9.251-20.678,20.679v125.404 c0,11.427,9.259,20.677,20.678,20.677h5.012v22.995c0,28.305,23.025,51.315,51.315,51.315h264.223 c28.272,0,51.3-23.011,51.3-51.315V121.449L315.458,0z M99.053,284.379c6.06-1.024,14.578-1.796,26.579-1.796 c12.128,0,20.772,2.315,26.58,6.965c5.548,4.382,9.292,11.615,9.292,20.127c0,8.51-2.837,15.745-7.999,20.646 c-6.714,6.32-16.643,9.157-28.258,9.157c-2.585,0-4.902-0.128-6.714-0.379v31.096H99.053V284.379z M386.034,450.713H121.811 c-10.954,0-19.874-8.92-19.874-19.889v-22.995h246.31c11.42,0,20.679-9.25,20.679-20.677V261.748 c0-11.428-9.259-20.679-20.679-20.679h-246.31V51.315c0-10.938,8.921-19.858,19.874-19.858l181.89-0.19v67.233 c0,19.638,15.934,35.587,35.587,35.587l65.862-0.189l0.741,296.925C405.891,441.793,396.987,450.713,386.034,450.713z M174.065,369.801v-85.422c7.225-1.15,16.642-1.796,26.58-1.796c16.516,0,27.226,2.963,35.618,9.282 c9.031,6.714,14.704,17.416,14.704,32.781c0,16.643-6.06,28.133-14.453,35.224c-9.157,7.612-23.096,11.222-40.125,11.222 C186.191,371.092,178.966,370.446,174.065,369.801z M314.892,319.226v15.996h-31.23v34.973h-19.74v-86.966h53.16v16.122h-33.42 v19.875H314.892z"/>
+              </svg>
+              <span>Simpan PDF</span>
+            </button>
+          </div>
+          <div id="lblJumlahGuruLengkap" class="text-xs font-semibold text-slate-600 self-end sm:self-center">
+            Memuatkan rekod guru...
+          </div>
+        </div>
+
+        <!-- Jadual Guru Untuk Penghantaran -->
+        <div id="containerJadualGuruBersediaHantar" class="border border-slate-200 rounded-2xl bg-white shadow-sm">
+          <div class="w-full">
+            <table class="w-full text-left border-separate border-spacing-0 text-xs">
+              <thead>
+                <tr class="text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+                  <th class="sticky-table-th py-3 px-3 text-center first:rounded-tl-2xl">Bil</th>
+                  <th class="sticky-table-th py-3 px-4">Nama Guru Dicerap</th>
+                  <th class="sticky-table-th py-3 px-4">Maklumat PdP</th>
+                  <th class="sticky-table-th py-3 px-3 text-center">Tarikh & Masa Pencerapan</th>
+                  <th class="sticky-table-th py-3 px-3 text-center">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-1">Skor Komponen</div>
+                    <div class="flex flex-col items-center justify-center space-y-1 text-[9px] font-bold">
+                      <span class="w-full max-w-[85px] text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200 text-center">Perancangan</span>
+                      <span class="w-full max-w-[85px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200 text-center">Pelaksanaan</span>
+                      <span class="w-full max-w-[85px] text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded border border-purple-200 text-center">Refleksi</span>
+                      <span class="w-full max-w-[85px] text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200 text-center">Murid</span>
+                    </div>
+                  </th>
+                  <th class="sticky-table-th py-3 px-4 text-center">Peratus & Tahap</th>
+                  <th class="sticky-table-th py-3 px-4 text-center">
+                    <div class="flex flex-col items-center justify-center space-y-1.5">
+                      <span>Status Penghantaran</span>
+                      <button
+                        type="button"
+                        id="btnToggleModManualStatus"
+                        onclick="handleToggleModManualStatus()"
+                        aria-pressed="false"
+                        class="inline-flex items-center space-x-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] font-semibold normal-case tracking-normal transition-all duration-150 border bg-white text-slate-600 border-slate-300 hover:border-indigo-400 hover:text-indigo-700 shadow-sm cursor-pointer"
+                        title="Togol Mod Manual untuk mengemas kini status dan tarikh penghantaran"
+                      >
+                        <span>✏️</span>
+                        <span class="hidden sm:inline">Manual</span>
+                      </button>
+                    </div>
+                  </th>
+                  <th class="sticky-table-th py-3 px-4 text-center last:rounded-tr-2xl">Tindakan Penghantaran</th>
+                </tr>
+              </thead>
+              <tbody id="tableGuruBody" class="divide-y divide-slate-100 text-slate-800">
+                <!-- Baris Rekod Guru Dijana Dinamik -->
+                <tr>
+                  <td colspan="8" class="py-8 text-center text-slate-400">
+                    Memuatkan data rekod guru daripada pangkalan data PENGISIAN...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- 3. FOOTER APLIKASI                                                    -->
+  <!-- ===================================================================== -->
+  <footer class="bg-white border-t border-slate-200 py-6 px-4 text-center mt-auto shadow-sm space-y-3">
+    <div class="max-w-7xl mx-auto space-y-2">
+      <p class="text-sm font-bold text-indigo-700">
+        CC BY-NC-SA 2026 SolusiBestariGuru 
+        <a href="https://t.me/solusibestariguru" target="_blank" rel="noopener" class="text-indigo-600 hover:text-indigo-800 underline">t.me/solusibestariguru</a>
+      </p>
+
+      <p class="text-xs font-medium text-slate-700">
+        Aplikasi Instrumen Bestari Penilaian PdP v2026.09 ini percuma untuk semua sekolah di Malaysia.
+      </p>
+
+      <p class="text-xs text-slate-500">
+        Dibangunkan oleh <span class="font-semibold text-slate-700">Ustaz Zaimuddin Hassan</span>
+        <span class="text-slate-400">(Guru Al-Quran dan Bahasa Arab, SMK Padang Pak Amat, Pasir Puteh, Kelantan)</span>
+      </p>
+
+      <p class="text-xs text-slate-400 italic">
+        berdasarkan <a href="https://sites.google.com/moe.gov.my/isppk/instrumen-isppk-manual-dan-digital" target="_blank" rel="noopener" class="hover:underline text-slate-500">Instrumen Manual dan Digital ISPPK</a> dan <a href="https://sites.google.com/moe.gov.my/isppk/pengisian-skor-isppk-2025" target="_blank" rel="noopener" class="hover:underline text-slate-500">Google Forms Pengisian Skor ISPPK</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- 4. LOGIK JAVASCRIPT APLIKASI                                          -->
+  <!-- ===================================================================== -->
+  <!-- Suntikan Data Sesi daripada Controller GAS -->
+  <script id="server-data-gf" type="application/json">
+    <?!= serverData ?>
+  </script>
+  <script>
+    // Inisialisasi Server Data daripada Controller GAS atau Sandaran Selamat
+    let SERVER_DATA = {};
+    try {
+      const _sdEl = document.getElementById("server-data-gf");
+      if (_sdEl && _sdEl.textContent.trim()) {
+        const _parsed = JSON.parse(_sdEl.textContent.trim());
+        if (_parsed && typeof _parsed === "object") SERVER_DATA = _parsed;
+      }
+    } catch (e) {
+      SERVER_DATA = {};
+    }
+    if (!SERVER_DATA.sekolah) {
+      SERVER_DATA.sekolah = {
+        kodSekolah: "DBA8002",
+        namaSekolah: "SEKOLAH KEBANGSAAN GUA MUSANG",
+        ppd: "PPD GUA MUSANG",
+        negeri: "KELANTAN"
+      };
+    }
+
+    // Ikon Adobe Acrobat / PDF Bervektor Visi Tinggi (Reusable Constant)
+    const ICON_PDF = `
+      <svg class="w-4 h-4 fill-white shrink-0" viewBox="0 0 512 512" aria-hidden="true">
+        <path d="M142.024,310.194c0-8.007-5.556-12.782-15.359-12.782c-4.003,0-6.714,0.395-8.132,0.773v25.69 c1.679,0.378,3.743,0.504,6.588,0.504C135.57,324.379,142.024,319.1,142.024,310.194z"/>
+        <path d="M202.709,297.681c-4.39,0-7.227,0.379-8.905,0.772v56.896c1.679,0.394,4.39,0.394,6.841,0.394 c17.809,0.126,29.424-9.677,29.424-30.449C230.195,307.231,219.611,297.681,202.709,297.681z"/>
+        <path d="M315.458,0H121.811c-28.29,0-51.315,23.041-51.315,51.315v189.754h-5.012c-11.418,0-20.678,9.251-20.678,20.679v125.404 c0,11.427,9.259,20.677,20.678,20.677h5.012v22.995c0,28.305,23.025,51.315,51.315,51.315h264.223 c28.272,0,51.3-23.011,51.3-51.315V121.449L315.458,0z M99.053,284.379c6.06-1.024,14.578-1.796,26.579-1.796 c12.128,0,20.772,2.315,26.58,6.965c5.548,4.382,9.292,11.615,9.292,20.127c0,8.51-2.837,15.745-7.999,20.646 c-6.714,6.32-16.643,9.157-28.258,9.157c-2.585,0-4.902-0.128-6.714-0.379v31.096H99.053V284.379z M386.034,450.713H121.811 c-10.954,0-19.874-8.92-19.874-19.889v-22.995h246.31c11.42,0,20.679-9.25,20.679-20.677V261.748 c0-11.428-9.259-20.679-20.679-20.679h-246.31V51.315c0-10.938,8.921-19.858,19.874-19.858l181.89-0.19v67.233 c0,19.638,15.934,35.587,35.587,35.587l65.862-0.189l0.741,296.925C405.891,441.793,396.987,450.713,386.034,450.713z M174.065,369.801v-85.422c7.225-1.15,16.642-1.796,26.58-1.796c16.516,0,27.226,2.963,35.618,9.282 c9.031,6.714,14.704,17.416,14.704,32.781c0,16.643-6.06,28.133-14.453,35.224c-9.157,7.612-23.096,11.222-40.125,11.222 C186.191,371.092,178.966,370.446,174.065,369.801z M314.892,319.226v15.996h-31.23v34.973h-19.74v-86.966h53.16v16.122h-33.42 v19.875H314.892z"/>
+      </svg>
+    `;
+
+    // Semak simpanan tempatan pemetaan + URL sebagai sandaran
+    const isLocalDev = typeof google === "undefined" || !google.script || !google.script.run;
+    let localSavedGf = {};
+    try {
+      const rawSaved = localStorage.getItem("ISPPK_GF_SAVED_PEMETAAN");
+      if (rawSaved) localSavedGf = JSON.parse(rawSaved) || {};
+    } catch (e) {}
+
+    const initialSavedUrl = (SERVER_DATA.savedFormUrl || localSavedGf.url || (isLocalDev ? "https://docs.google.com/forms/d/e/1FAIpQLSfo4FMjtO5d6UW8a4xGo2XrsMIyNCeAcCy5Wl0vGCcrwQ49aA/viewform" : "")).trim();
+    const initialSavedMapping = (SERVER_DATA.savedFormUrl ? SERVER_DATA.savedMapping : localSavedGf.mapping) || {};
+    const hasInitialValidMapping = Boolean(
+      (initialSavedUrl &&
+      initialSavedMapping &&
+      Object.keys(initialSavedMapping).some(k => initialSavedMapping[k] && (initialSavedMapping[k].mappedField || initialSavedMapping[k].fixedValue))) ||
+      isLocalDev
+    );
+
+    // Keadaan Global Aplikasi (State Machine)
+    let appState = {
+      authData: SERVER_DATA.authData || {},
+      sekolah: SERVER_DATA.sekolah || {},
+      currentYear: String(SERVER_DATA.currentYear || new Date().getFullYear()),
+      savedUrl: initialSavedUrl,
+      targetUrl: initialSavedUrl,
+      resolvedUrl: initialSavedUrl,
+      activeTab: 1,
+      formItems: (SERVER_DATA.savedFormItems && SERVER_DATA.savedFormItems.length > 0) ? SERVER_DATA.savedFormItems : (localSavedGf.formItems || []),
+      formPages: (SERVER_DATA.savedFormPages && SERVER_DATA.savedFormPages.length > 0) ? SERVER_DATA.savedFormPages : (localSavedGf.formPages || []),
+      lastPageIndex: 0,
+      mapping: hasInitialValidMapping ? initialSavedMapping : {},
+      isMappingSaved: hasInitialValidMapping,
+      isMappingCompleted: hasInitialValidMapping,
+      senaraiGuruM: [],
+      filteredGuruM: [],
+      submittedRecords: SERVER_DATA.savedSubmittedRecords || {}, // { idRekod: { timestamp, isoDateTime } }
+      isStatusManualMode: false,
+      isLoading: false,
+      googleAccountIndex: "1" // Lalai kepada Akaun #2 (/u/1/) DELIMa
+    };
+
+    // Medan Sumber Standard ISPPK daripada PENGISIAN & TETAPAN
+    const SENARAI_MEDAN_ISPPK = [
+      {
+        kategori: "🏫 Butiran Sekolah",
+        medan: [
+          { key: "sekolah.kodSekolah", label: "Kod Sekolah (cth: DEA4295)" },
+          { key: "sekolah.namaSekolah", label: "Nama Sekolah" },
+          { key: "sekolah.negeri", label: "Negeri Sekolah" },
+          { key: "sekolah.ppd", label: "PPD Sekolah (cth: PPD Pasir Puteh)" },
+          { key: "sekolah.emelSekolah", label: "E-mel Sekolah" }
+        ]
+      },
+      {
+        kategori: "👤 Butiran Guru Dicerap",
+        medan: [
+          { key: "guru.nama", label: "Nama Guru Dicerap" },
+          { key: "guru.emel", label: "E-mel Guru (DELIMa)" },
+          { key: "guru.jantina", label: "Jantina Guru (Lelaki / Perempuan)" },
+          { key: "guru.opsyen", label: "Opsyen Guru" }
+        ]
+      },
+      {
+        kategori: "🧑‍💼 Butiran Pencerap",
+        medan: [
+          { key: "pencerap.nama", label: "Nama Pencerap" },
+          { key: "pencerap.jawatan", label: "Jawatan Pencerap" },
+          { key: "pencerap.email", label: "E-mel Pencerap (DELIMa)" },
+          { key: "pencerap.tarikh", label: "Tarikh Pencerapan (YYYY-MM-DD)" },
+          { key: "pencerap.tarikh_tahun", label: "Tarikh - Tahun (cth: 2026)" },
+          { key: "pencerap.tarikh_bulan", label: "Tarikh - Bulan (cth: 09 / September)" },
+          { key: "pencerap.tarikh_hari", label: "Tarikh - Hari (cth: 26)" },
+          { key: "pencerap.masa", label: "Masa Pencerapan (cth: 09:30)" }
+        ]
+      },
+      {
+        kategori: "📚 Butiran PdP",
+        medan: [
+          { key: "pdp.mataPelajaran", label: "Mata Pelajaran Dicerap" },
+          { key: "pdp.tajuk", label: "Tajuk / Topik PdP" },
+          { key: "pdp.bilMurid", label: "Bilangan Murid Hadir" },
+          { key: "pdp.tingkatan", label: "Tahun / Tingkatan" },
+          { key: "pdp.namaKelas", label: "Nama Kelas / Aliran" }
+        ]
+      },
+      {
+        kategori: "🏆 Skor Muktamad Pencerap (M)",
+        medan: [
+          { key: "skorM_Perancangan", label: "Skor M - Perancangan (Maks 20)" },
+          { key: "skorM_Pelaksanaan", label: "Skor M - Pelaksanaan (Maks 25)" },
+          { key: "skorM_Refleksi", label: "Skor M - Refleksi (Maks 5)" },
+          { key: "skorM_Murid", label: "Skor M - Murid (Maks 50)" },
+          { key: "jumlahSkorM", label: "Jumlah Skor M (Maks 100)" },
+          { key: "peratusM", label: "Peratus Skor M (%)" },
+          { key: "tahapM", label: "Tahap KBAT M (Penerangan Penuh)" },
+          { key: "tahapM_ringkas", label: "Ringkasan Tahap KBAT M (Cemerlang, Baik, dsb.)" }
+        ]
+      },
+      {
+        kategori: "📝 Refleksi & Rumusan",
+        medan: [
+          { key: "refleksiGuru1", label: "Refleksi Kendiri Guru 1" },
+          { key: "refleksiGuru2", label: "Refleksi Kendiri Guru 2" },
+          { key: "rumusanPencerap", label: "Rumusan Pencerap" },
+          { key: "idRekod", label: "ID Rekod ISPPK" }
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // INIT PADA PEMUATAN HALAMAN
+    // =========================================================================
+    window.addEventListener("DOMContentLoaded", () => {
+      initAppHeaders();
+      initUrlState();
+      muatSimpananTempatanStatusHantar();
+
+      // Jika ada data elemen soalan yang telah disimpan sebelum ini, muatkan serta-merta ke antaramuka
+      if (appState.formItems && appState.formItems.length > 0) {
+        document.getElementById("badgeCountElemen").textContent = appState.formItems.length;
+        document.getElementById("lblFormTotalItems").textContent = `${appState.formItems.length} Elemen Soalan`;
+        document.getElementById("metaBorangContainer").classList.remove("hidden");
+        document.getElementById("footerTab1").classList.remove("hidden");
+        renderSenaraiElemenTab1(appState.formItems);
+        renderPemetaanTab2(appState.formItems);
+        semakStatusKesediaanPemetaan();
+      }
+
+      // Jika URL dan Pemetaan sedia ada dalam serverData, muatkan secara automatik
+      if (appState.targetUrl) {
+        document.getElementById("inputFormUrl").value = appState.targetUrl;
+        handleUrlInputChange();
+        // Muatkan elemen yang disimpan secara segar dari Google Forms
+        handleTriggerDapatkanElemen(true);
+      }
+
+      // Muatkan senarai guru skor muktamad
+      handleMuatSemulaRekodGuru();
+
+      if (isLocalDev) {
+        updateTab3LockStatus(true);
+      }
+    });
+
+    // Inisialisasi Lencana Header
+    function initAppHeaders() {
+      const p = appState.authData;
+      const s = appState.sekolah;
+
+      if (p && p.nama) {
+        document.getElementById("lblNamaPencerap").textContent = p.nama;
+        document.getElementById("lblEmelPencerap").textContent = p.email || "-";
+        document.getElementById("pencerapChip").classList.remove("hidden");
+        document.getElementById("pencerapChip").classList.add("hidden", "sm:flex");
+      }
+      if (s && s.namaSekolah) {
+        document.getElementById("lblNamaSekolah").textContent = s.namaSekolah;
+        document.getElementById("lblPpdNegeri").textContent = `${s.ppd || ""} • ${s.negeri || ""}`;
+        document.getElementById("sekolahChip").classList.remove("hidden");
+        document.getElementById("sekolahChip").classList.add("hidden", "md:flex");
+      }
+    }
+
+    // Semak sama ada dua URL Google Forms merujuk kepada URL simpanan yang sama
+    function adakahUrlSamaDenganSimpanan(urlSemasa) {
+      const u1 = String(urlSemasa || "").trim();
+      const u2 = String(appState.savedUrl || "").trim();
+      if (!u1 || !u2) return false;
+      return u1 === u2;
+    }
+
+    // Reset pemetaan apabila URL Google Form berubah dan tandakan sebagai belum disimpan
+    function resetPemetaanKeranaUrlBerubah() {
+      appState.mapping = {};
+      appState.isMappingSaved = false;
+      appState.isMappingCompleted = false;
+      updateTab3LockStatus(false);
+
+      const lblFormMappingStatus = document.getElementById("lblFormMappingStatus");
+      if (lblFormMappingStatus) {
+        lblFormMappingStatus.textContent = "Belum disimpan (URL berubah)";
+      }
+
+      if (appState.formItems && appState.formItems.length > 0) {
+        renderPemetaanTab2(appState.formItems);
+      }
+    }
+
+    // Status Validasi URL input secara visual
+    function handleUrlInputChange() {
+      const val = (document.getElementById("inputFormUrl").value || "").trim();
+      const badge = document.getElementById("badgeUrlStatus");
+
+      // Jika URL berubah berbanding URL yang telah disimpan bersama pemetaan, reset pemetaan serta-merta
+      if (!adakahUrlSamaDenganSimpanan(val)) {
+        if (appState.isMappingSaved || Object.keys(appState.mapping || {}).length > 0) {
+          resetPemetaanKeranaUrlBerubah();
+        } else {
+          updateTab3LockStatus(false);
+        }
+      }
+
+      if (!val) {
+        badge.textContent = "Belum Disemak";
+        badge.className = "bg-slate-100 text-slate-600 text-[11px] px-2 py-0.5 rounded-md font-medium";
+        return;
+      }
+
+      // Selaraskan jika URL mengandungi indeks profil akaun /u/X/
+      const uMatch = val.match(/\/forms\/u\/(\d+)\//i);
+      if (uMatch) {
+        const idx = uMatch[1];
+        appState.googleAccountIndex = idx;
+        try { localStorage.setItem("ISPPK_GOOGLE_ACCOUNT_INDEX", idx); } catch (e) {}
+        const selEl = document.getElementById("selGoogleAccountIndex");
+        if (selEl) selEl.value = idx;
+        kemaskiniLencanaProfilTab3(idx);
+      }
+
+      const isShort = /^(https?:\/\/)?(forms\.gle|goo\.gl)\//i.test(val);
+      const isDocs = /^https:\/\/docs\.google\.com\/forms\/(?:u\/\d+\/)?d\//i.test(val);
+
+      if (isShort || isDocs) {
+        badge.textContent = isShort ? "Pautan Pendek (forms.gle)" : "Pautan Google Forms";
+        badge.className = "bg-emerald-100 text-emerald-800 text-[11px] px-2 py-0.5 rounded-md font-medium border border-emerald-200";
+      } else {
+        badge.textContent = "Format Tidak Sah";
+        badge.className = "bg-rose-100 text-rose-800 text-[11px] px-2 py-0.5 rounded-md font-medium border border-rose-200";
+      }
+    }
+
+    // Tampal Pantas dari Clipboard
+    async function handleTampalClipboard() {
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            document.getElementById("inputFormUrl").value = text.trim();
+            handleUrlInputChange();
+            Swal.fire({
+              icon: "success",
+              title: "Pautan Ditampal",
+              text: "Pautan Google Form berjaya ditampal.",
+              timer: 1200,
+              showConfirmButton: false,
+              toast: true,
+              position: "top-end"
+            });
+          }
+        } else {
+          document.getElementById("inputFormUrl").focus();
+        }
+      } catch (err) {
+        document.getElementById("inputFormUrl").focus();
+      }
+    }
+
+    // =========================================================================
+    // NAVIGASI SISTEM TAB
+    // =========================================================================
+    function switchTab(targetIndex) {
+      if (targetIndex === 3 && !appState.isMappingCompleted) {
+        Swal.fire({
+          icon: "warning",
+          title: "Tab 3 Terkunci 🔒",
+          text: "Sila lengkapkan dan simpan 'Pemetaan Elemen Soalan' dalam Tab 2 terlebih dahulu sebelum menghantar data.",
+          confirmButtonColor: "#4f46e5"
+        });
+        return;
+      }
+
+      appState.activeTab = targetIndex;
+
+      // Kemas kini gaya Tab Headers
+      for (let i = 1; i <= 3; i++) {
+        const btn = document.getElementById("tabBtn" + i);
+        const content = document.getElementById("tabContent" + i);
+
+        if (i === targetIndex) {
+          btn.classList.add("border-emerald-600", "text-emerald-700", "bg-white", "shadow-sm");
+          btn.classList.remove("border-transparent", "text-slate-600", "hover:text-slate-900");
+          content.classList.remove("hidden");
+        } else {
+          btn.classList.remove("border-emerald-600", "text-emerald-700", "bg-white", "shadow-sm");
+          btn.classList.add("border-transparent", "text-slate-600", "hover:text-slate-900");
+          content.classList.add("hidden");
+        }
+      }
+    }
+
+    // Buka Kunci Tab 3
+    function updateTab3LockStatus(isUnlocked) {
+      appState.isMappingCompleted = isUnlocked;
+      const tab3Btn = document.getElementById("tabBtn3");
+      const lockBadge = document.getElementById("lockBadgeTab3");
+      const badgeStatusPemetaan = document.getElementById("badgeStatusPemetaan");
+      const lblFormMappingStatus = document.getElementById("lblFormMappingStatus");
+
+      if (isUnlocked) {
+        tab3Btn.disabled = false;
+        tab3Btn.classList.remove("cursor-not-allowed", "opacity-60", "text-slate-400");
+        tab3Btn.classList.add("text-slate-600", "hover:text-slate-900");
+        lockBadge.textContent = "🔓";
+        badgeStatusPemetaan.textContent = "Disimpan 🗺️";
+        badgeStatusPemetaan.className = "ml-1 bg-emerald-100 text-emerald-800 text-[11px] px-2 py-0.5 rounded-full font-bold";
+        if (lblFormMappingStatus) lblFormMappingStatus.textContent = "Telah Disimpan ✓";
+      } else {
+        tab3Btn.disabled = true;
+        tab3Btn.classList.add("cursor-not-allowed", "opacity-60", "text-slate-400");
+        tab3Btn.classList.remove("text-slate-600", "hover:text-slate-900");
+        lockBadge.textContent = "🔒";
+        badgeStatusPemetaan.textContent = "Belum 🗺️";
+        badgeStatusPemetaan.className = "ml-1 bg-slate-200 text-slate-700 text-[11px] px-2 py-0.5 rounded-full font-medium";
+        if (lblFormMappingStatus) lblFormMappingStatus.textContent = "Belum Disimpan";
+      }
+    }
+
+    // =========================================================================
+    // TAB 1: DAPATKAN ELEMEN SOALAN GOOGLE FORMS
+    // =========================================================================
+    function handleTriggerDapatkanElemen(isSilent = false) {
+      const url = (document.getElementById("inputFormUrl").value || "").trim();
+      if (!url) {
+        if (!isSilent) {
+          Swal.fire({
+            icon: "warning",
+            title: "URL Diperlukan",
+            text: "Sila masukkan URL Google Form JPN terlebih dahulu.",
+            confirmButtonColor: "#4f46e5"
+          });
+        }
+        return;
+      }
+
+      setLoadingElemen(true);
+
+      // Jika URL berbeza daripada URL yang disimpan, reset pemetaan dan tandakan belum disimpan
+      if (!adakahUrlSamaDenganSimpanan(url)) {
+        appState.mapping = {};
+        appState.isMappingSaved = false;
+        updateTab3LockStatus(false);
+      }
+
+      // Panggil backend Google Apps Script
+      if (window.google && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler((res) => {
+            setLoadingElemen(false);
+            if (res && res.success && res.items) {
+              prosesHasilDapatkanElemen(res);
+            } else {
+              if (!isSilent) {
+                Swal.fire({
+                  icon: "error",
+                  title: "Ralat Pengekstrakan",
+                  text: res?.error || "Gagal mendapatkan elemen soalan daripada borang ini.",
+                  confirmButtonColor: "#4f46e5"
+                });
+              }
+            }
+          })
+          .withFailureHandler((err) => {
+            setLoadingElemen(false);
+            if (!isSilent) {
+              Swal.fire({
+                icon: "error",
+                title: "Ralat Sambungan",
+                text: "Ralat: " + err.message,
+                confirmButtonColor: "#4f46e5"
+              });
+            }
+          })
+          .dapatkanElemenBorangGF(url);
+      } else {
+        // Simulasi jika diuji di luar persekitaran GAS container
+        setTimeout(() => {
+          setLoadingElemen(false);
+          const mockRes = janaanOlokOlokElemenGF(url);
+          prosesHasilDapatkanElemen(mockRes);
+        }, 800);
+      }
+    }
+
+    function setLoadingElemen(loading) {
+      appState.isLoading = loading;
+      const btn = document.getElementById("btnDapatkanElemen");
+      const icon = document.getElementById("iconDapatkanElemen");
+      const txt = document.getElementById("txtDapatkanElemen");
+
+      if (loading) {
+        btn.disabled = true;
+        btn.classList.add("opacity-75", "cursor-not-allowed");
+        icon.innerHTML = `<svg class="animate-spin h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+        txt.innerHTML = `<span class="hidden sm:inline">Mengekstrak Elemen...</span><span class="sm:hidden">Mengekstrak...</span>`;
+      } else {
+        btn.disabled = false;
+        btn.classList.remove("opacity-75", "cursor-not-allowed");
+        icon.textContent = "🔍";
+        txt.innerHTML = `<span class="hidden sm:inline">Dapatkan Elemen Soalan</span><span class="sm:hidden">Dapatkan Elemen</span>`;
+      }
+    }
+
+    function prosesHasilDapatkanElemen(res) {
+      appState.targetUrl = document.getElementById("inputFormUrl").value.trim();
+      appState.resolvedUrl = res.url || appState.targetUrl;
+      appState.formItems = res.items || [];
+      appState.formPages = res.pages || [];
+      appState.lastPageIndex = res.lastPageIndex || 0;
+
+      // Kemas kini paparan URL Sebenar
+      if (res.url && res.url !== appState.targetUrl) {
+        document.getElementById("lblResolvedUrl").textContent = res.url;
+        document.getElementById("infoResolvedUrlContainer").classList.remove("hidden");
+      }
+
+      // Kemas kini Ringkasan Metrik
+      document.getElementById("badgeCountElemen").textContent = appState.formItems.length;
+      document.getElementById("lblFormTitle").textContent = res.title || "Borang Google Forms JPN";
+      document.getElementById("lblFormTotalItems").textContent = `${appState.formItems.length} Elemen Soalan`;
+      document.getElementById("metaBorangContainer").classList.remove("hidden");
+
+      // Selaraskan satu soalan penentu alur awal jika pemetaan masih kosong & ada data sekolah
+      selaraskanSoalanPenentuAlurAwal();
+
+      // Paparkan Kad-Kad Elemen Tab 1
+      renderSenaraiElemenTab1(appState.formItems);
+
+      // Jana Semula Antaramuka Tab 2 (Pemetaan)
+      renderPemetaanTab2(appState.formItems);
+
+      // Semak jika pemetaan sedia ada padan
+      semakStatusKesediaanPemetaan();
+
+      // Tunjukkan butang mara ke Tab 2
+      document.getElementById("footerTab1").classList.remove("hidden");
+    }
+
+    function renderSenaraiElemenTab1(items) {
+      const container = document.getElementById("listElemenItems");
+      const placeholder = document.getElementById("placeholderElemenKosong");
+
+      if (!items || items.length === 0) {
+        container.classList.add("hidden");
+        placeholder.classList.remove("hidden");
+        return;
+      }
+
+      placeholder.classList.add("hidden");
+      container.classList.remove("hidden");
+      container.innerHTML = "";
+
+      items.forEach((item, index) => {
+        let typeBadgeClass = "bg-blue-100 text-blue-800 border-blue-200";
+        if (item.type === "Tarikh") typeBadgeClass = "bg-amber-100 text-amber-800 border-amber-200";
+        else if (item.type === "Dropdown") typeBadgeClass = "bg-purple-100 text-purple-800 border-purple-200";
+        else if (item.type === "Kotak Semak") typeBadgeClass = "bg-teal-100 text-teal-800 border-teal-200";
+        else if (item.type === "Pilihan Tunggal") typeBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+        let optionsHtml = "";
+        if (item.options && item.options.length > 0) {
+          const maxPapar = 8;
+          const displayOpts = item.options.slice(0, maxPapar);
+          const bakiOpts = item.options.length - maxPapar;
+
+          optionsHtml = `
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100">
+              <div class="text-[11px] font-semibold text-slate-500 mb-1.5 flex items-center space-x-1">
+                <span>Pilihan Jawapan (${item.options.length}):</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto standard-scrollbar">
+                ${displayOpts.map(opt => `<span class="bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded-md border border-slate-200 truncate max-w-[200px]">${escapeHtml(opt)}</span>`).join("")}
+                ${bakiOpts > 0 ? `<span class="bg-indigo-50 text-indigo-700 text-[11px] px-2 py-0.5 rounded-md border border-indigo-200 font-semibold">+${bakiOpts} lagi</span>` : ""}
+              </div>
+            </div>
+          `;
+        }
+
+        const card = document.createElement("div");
+        card.className = "bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 shadow-sm hover:border-indigo-300 transition flex flex-col justify-between";
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start space-x-3">
+              <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                ${index + 1}
+              </span>
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 leading-snug">${escapeHtml(item.label)}</h4>
+                <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                  <span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                    ID: ${item.id}
+                  </span>
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded border ${typeBadgeClass}">
+                    ${item.type}
+                  </span>
+                  ${item.required ? `<span class="text-[10px] bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded border border-rose-200 font-bold">* Mandatori</span>` : ""}
+                </div>
+              </div>
+            </div>
+          </div>
+          ${optionsHtml}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // =========================================================================
+    // TAB 2: PEMETAAN ELEMEN SOALAN
+    // =========================================================================
+    // =========================================================================
+    // TAB 2: PEMETAAN ELEMEN SOALAN DENGAN ALUR LALUAN SEKSYEN DINAMIK
+    // =========================================================================
+
+    /**
+     * Membatalkan penetapan (fixedValue, mappedField, subMapping) bagi semua soalan
+     * yang berada dalam seksyen cabang dinamik (paparan dinamik) sebelum disembunyikan.
+     */
+    function batalkanPenetapanSeksyenDinamik() {
+      if (!appState.formItems || appState.formItems.length === 0) return;
+
+      // 1. Kenal pasti semua ID seksyen sasaran cabang
+      const allBranchSectionIds = new Set();
+      appState.formItems.forEach(it => {
+        const targets = it.choiceTargets || {};
+        Object.keys(targets).forEach(optKey => {
+          const tgt = String(targets[optKey]);
+          if (tgt && tgt !== "-2" && tgt !== "null" && tgt !== "undefined") {
+            allBranchSectionIds.add(tgt);
+          }
+        });
+      });
+
+      // 2. Batalkan penetapan pilihan dan pemetaan medan bagi setiap item dalam seksyen cabang dinamik
+      appState.formItems.forEach(it => {
+        const secId = it.sectionId ? String(it.sectionId) : ("PAGE_" + (it.pageIndex || 0));
+        if (allBranchSectionIds.has(secId) || allBranchSectionIds.has(String(it.sectionId))) {
+          if (appState.mapping[it.id]) {
+            appState.mapping[it.id].fixedValue = "";
+            appState.mapping[it.id].mappedField = "";
+            appState.mapping[it.id].subMapping = {};
+          }
+        }
+      });
+    }
+
+    /**
+     * Menyelaraskan soalan penentu alur awal dengan data sekolah jika pemetaan masih kosong.
+     * Memastikan HANYA SATU soalan penentu alur yang ditetapkan.
+     */
+    function selaraskanSoalanPenentuAlurAwal() {
+      if (!appState.formItems || appState.formItems.length === 0) return;
+
+      const branchingQuestions = appState.formItems.filter(it =>
+        it.hasBranching || (it.choiceTargets && Object.keys(it.choiceTargets).length > 0)
+      );
+      if (branchingQuestions.length === 0) return;
+
+      // Semak jika sudah ada sebarang penetapan pada mana-mana soalan penentu alur
+      const alreadySet = branchingQuestions.some(bQ => appState.mapping[bQ.id] && (appState.mapping[bQ.id].fixedValue || appState.mapping[bQ.id].mappedField));
+      if (alreadySet) return;
+
+      // Jika belum ada penetapan dan data sekolah wujud, padankan soalan penentu alur pertama yang sepadan
+      if (appState.sekolah) {
+        const ppdSchool = String(appState.sekolah.ppd || "").toUpperCase().trim();
+        const stateSchool = String(appState.sekolah.negeri || "").toUpperCase().trim();
+
+        for (const bQ of branchingQuestions) {
+          const matchedOpt = (bQ.options || []).find(opt => {
+            const up = String(opt).toUpperCase().trim();
+            return (ppdSchool && (up.includes(ppdSchool) || ppdSchool.includes(up))) ||
+                   (stateSchool && (up.includes(stateSchool) || stateSchool.includes(up)));
+          });
+
+          if (matchedOpt) {
+            if (!appState.mapping[bQ.id]) {
+              appState.mapping[bQ.id] = { mappedField: "", fixedValue: "", subMapping: {} };
+            }
+            appState.mapping[bQ.id].fixedValue = matchedOpt;
+            break; // Pastikan HANYA SATU soalan penentu alur yang ditetapkan
+          }
+        }
+      }
+    }
+
+    /**
+     * Menganalisis alur seksyen borang dan menentukan bahagian/seksyen yang patut
+     * dipaparkan berdasarkan pilihan pengguna dalam bahagian sebelumnya (seperti alur Google Form).
+     *
+     * Logik Pintar & Bukan Tetap (Generic):
+     * 1. Seksyen Permulaan (Halaman 0): Sentiasa dipaparkan.
+     * 2. Seksyen Cabang Bersyarat: HANYA dipaparkan jika satu pilihan yang menghala kepadanya dipilih.
+     * 3. Seksyen Tanpa Kaitan Laluan / Laluan Umum (Linear): Segera dipaparkan (contoh: Maklumat Pencerapan & Skor).
+     */
+    function analisaAlurSeksyenDinamik(items, pages) {
+      if (!items || items.length === 0) {
+        return { sections: [], activeChoices: {}, hiddenBranchesCount: 0 };
+      }
+
+      // 1. Kumpulkan semua seksyen/halaman daripada pages atau items
+      const sectionsMap = new Map();
+      const pagesList = Array.isArray(pages) && pages.length > 0 ? pages : [];
+
+      pagesList.forEach((p, idx) => {
+        const secId = String(p.sectionId || ("PAGE_" + p.pageIndex));
+        sectionsMap.set(secId, {
+          sectionId: secId,
+          pageIndex: p.pageIndex !== undefined ? p.pageIndex : idx,
+          title: p.title || (idx === 0 ? "Maklumat Am" : `Bahagian ${idx + 1}`),
+          description: p.description || "",
+          navDestination: p.navDestination !== undefined && p.navDestination !== null ? String(p.navDestination) : null,
+          isSubmitPage: !!p.isSubmitPage || p.navDestination === "-2" || p.navDestination === -2,
+          items: []
+        });
+      });
+
+      // Agihkan soalan ke dalam seksyen berkenaan
+      items.forEach(it => {
+        let secId = it.sectionId ? String(it.sectionId) : null;
+        if (!secId && it.pageIndex !== undefined) {
+          secId = "PAGE_" + it.pageIndex;
+        }
+        if (!secId) {
+          secId = "PAGE_0";
+        }
+
+        if (!sectionsMap.has(secId)) {
+          sectionsMap.set(secId, {
+            sectionId: secId,
+            pageIndex: it.pageIndex || 0,
+            title: it.section || (it.pageIndex === 0 ? "Maklumat Am" : `Bahagian ${sectionsMap.size + 1}`),
+            description: "",
+            navDestination: null,
+            isSubmitPage: false,
+            items: []
+          });
+        }
+        sectionsMap.get(secId).items.push(it);
+      });
+
+      const allSections = Array.from(sectionsMap.values()).sort((a, b) => a.pageIndex - b.pageIndex);
+      if (allSections.length === 0) {
+        return { sections: [], activeChoices: {}, hiddenBranchesCount: 0 };
+      }
+
+      // Tandakan halaman terakhir sebagai isSubmitPage
+      if (allSections[allSections.length - 1]) {
+        allSections[allSections.length - 1].isSubmitPage = true;
+      }
+
+      // 2. Kenal pasti semua soalan cabang (Branching Questions) dan sasaran seksyennya
+      const allBranchTargets = new Set();
+      const branchingQuestions = [];
+
+      items.forEach(it => {
+        const targets = it.choiceTargets || {};
+        const targetKeys = Object.keys(targets);
+        if (targetKeys.length > 0) {
+          branchingQuestions.push(it);
+          targetKeys.forEach(choiceName => {
+            const tgtId = String(targets[choiceName]);
+            if (tgtId && tgtId !== "-2" && tgtId !== "null" && tgtId !== "undefined") {
+              allBranchTargets.add(tgtId);
+            }
+          });
+        }
+      });
+
+      // 3. Kenal pasti pilihan aktif bagi soalan cabang:
+      // Pastikan HANYA SATU soalan penentu alur dan satu pilihan item bagi soalan tersebut yang ditetapkan.
+      // Batalkan pilihan item dalam soalan penentu alur yang tidak dipilih / dibatalkan penetapannya.
+      const activeChoices = {}; // itemId -> { choice, targetSectionId, questionLabel }
+      const activeTargetSections = new Set();
+
+      let activeBranchingQuestion = null;
+      let activeChosenValue = "";
+
+      // Cari soalan penentu alur yang mempunyai nilai tetap yang ditetapkan oleh pengguna
+      branchingQuestions.forEach(bQuestion => {
+        const mapping = appState.mapping[bQuestion.id] || {};
+        const val = mapping.fixedValue || "";
+        if (val) {
+          if (!activeBranchingQuestion) {
+            activeBranchingQuestion = bQuestion;
+            activeChosenValue = val;
+          } else {
+            // Batalkan pilihan dalam soalan penentu alur lain yang tidak terpilih
+            mapping.fixedValue = "";
+            mapping.mappedField = "";
+            mapping.subMapping = {};
+          }
+        }
+      });
+
+      // Jika ada soalan penentu alur dan pilihan aktif yang sah
+      if (activeBranchingQuestion && activeChosenValue) {
+        const tgtId = activeBranchingQuestion.choiceTargets ? String(activeBranchingQuestion.choiceTargets[activeChosenValue] || "") : "";
+        activeChoices[activeBranchingQuestion.id] = {
+          choice: activeChosenValue,
+          targetSectionId: tgtId,
+          questionLabel: activeBranchingQuestion.label
+        };
+        if (tgtId && tgtId !== "-2" && tgtId !== "null" && tgtId !== "undefined") {
+          activeTargetSections.add(tgtId);
+        }
+      }
+
+      // 4. Tentukan status paparan setiap seksyen
+      let hiddenBranchesCount = 0;
+
+      allSections.forEach(sec => {
+        // a. Seksyen 0 (Maklumat Am / Permulaan) sentiasa dipaparkan
+        if (sec.pageIndex === 0) {
+          sec.shouldDisplay = true;
+          sec.category = "root";
+          sec.badgeText = "📋 Maklumat Am & Pemilihan Daerah";
+          sec.themeColor = "indigo";
+          return;
+        }
+
+        // b. Adakah seksyen ini merupakan sasaran kepada mana-mana cabang bersyarat?
+        const isTargetOfAnyBranch = allBranchTargets.has(sec.sectionId);
+
+        if (isTargetOfAnyBranch) {
+          // Seksyen ini ialah cabang bersyarat (contoh: Senarai Sekolah PPD Tertentu)
+          if (activeTargetSections.has(sec.sectionId)) {
+            sec.shouldDisplay = true;
+            sec.category = "conditional_active";
+            sec.themeColor = "emerald";
+
+            // Dapatkan label pilihan yang mengaktifkannya
+            let triggerChoice = "";
+            Object.values(activeChoices).forEach(ac => {
+              if (ac && ac.targetSectionId === sec.sectionId) {
+                triggerChoice = ac.choice;
+              }
+            });
+            sec.triggerChoice = triggerChoice;
+            sec.badgeText = `✓ Dipaparkan Berdasarkan Pilihan: ${triggerChoice || "PPD Terpilih"}`;
+          } else {
+            // Disembunyikan kerana bukan cabang yang dipilih pengguna
+            sec.shouldDisplay = false;
+            sec.category = "conditional_hidden";
+            hiddenBranchesCount++;
+          }
+        } else {
+          // c. Seksyen tanpa kaitan cabang / laluan umum (contoh: Maklumat Pencerapan & Skor)
+          sec.shouldDisplay = true;
+          if (sec.isSubmitPage || sec.navDestination === "-2") {
+            sec.category = "submit";
+            sec.themeColor = "amber";
+            sec.badgeText = "🏁 Seksyen Akhir (Mengandungi Butang Submit)";
+          } else {
+            sec.category = "common";
+            sec.themeColor = "sky";
+            sec.badgeText = "⚡ Laluan Umum";
+          }
+        }
+      });
+
+      return {
+        sections: allSections,
+        activeChoices: activeChoices,
+        hiddenBranchesCount: hiddenBranchesCount,
+        branchingQuestions: branchingQuestions,
+        activeBranchingQuestion: activeBranchingQuestion,
+        activeChosenValue: activeChosenValue
+      };
+    }
+
+    /**
+     * Memaparkan Antaramuka Tab 2: Pemetaan Elemen Soalan mengikut Kad Seksyen Dinamik.
+     */
+    function renderPemetaanTab2(items) {
+      const container = document.getElementById("listPemetaanItems");
+      const placeholder = document.getElementById("placeholderPemetaanKosong");
+
+      if (!items || items.length === 0) {
+        container.classList.add("hidden");
+        placeholder.classList.remove("hidden");
+        return;
+      }
+
+      placeholder.classList.add("hidden");
+      container.classList.remove("hidden");
+      container.innerHTML = "";
+
+      // Jalankan analisa alur laluan seksyen dinamik
+      const { sections, activeChoices, hiddenBranchesCount, branchingQuestions, activeBranchingQuestion, activeChosenValue } = analisaAlurSeksyenDinamik(items, appState.formPages);
+
+      let stepCounter = 1;
+      let hasShownBranchNotice = false;
+
+      sections.forEach(sec => {
+        // Jika seksyen disembunyikan (cabang tidak terpilih), langkau
+        if (!sec.shouldDisplay) return;
+
+        // Jika seksyen mengandungi soalan atau merupakan seksyen submit
+        const secItems = sec.items || [];
+        if (secItems.length === 0 && !sec.isSubmitPage) return;
+
+        // Gaya Warna Kad Seksyen Mengikut Kategori
+        let borderClass = "border-slate-200";
+        let headerBgClass = "bg-slate-50/80 border-b border-slate-200";
+        let stepBadgeClass = "bg-slate-200 text-slate-800";
+        let badgePillClass = "bg-slate-100 text-slate-700 border-slate-200";
+
+        if (sec.category === "root") {
+          borderClass = "border-indigo-200 shadow-sm";
+          headerBgClass = "bg-indigo-50/70 border-b border-indigo-100";
+          stepBadgeClass = "bg-indigo-600 text-white";
+          badgePillClass = "bg-indigo-100 text-indigo-800 border-indigo-200";
+        } else if (sec.category === "conditional_active") {
+          borderClass = "border-emerald-300 ring-2 ring-emerald-500/10 shadow-sm";
+          headerBgClass = "bg-emerald-50/70 border-b border-emerald-100";
+          stepBadgeClass = "bg-emerald-600 text-white";
+          badgePillClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
+        } else if (sec.category === "common") {
+          borderClass = "border-sky-200 shadow-sm";
+          headerBgClass = "bg-sky-50/70 border-b border-sky-100";
+          stepBadgeClass = "bg-sky-600 text-white";
+          badgePillClass = "bg-sky-100 text-sky-800 border-sky-200";
+        } else if (sec.category === "submit") {
+          borderClass = "border-amber-300 ring-2 ring-amber-500/10 shadow-sm";
+          headerBgClass = "bg-amber-50/70 border-b border-amber-200";
+          stepBadgeClass = "bg-amber-600 text-white";
+          badgePillClass = "bg-amber-100 text-amber-900 border-amber-200";
+        }
+
+        // Bina Kad Utama Seksyen
+        const secCard = document.createElement("div");
+        secCard.className = `bg-white border rounded-2xl overflow-hidden transition-all duration-200 ${borderClass}`;
+        secCard.id = `sectionCard_${sec.sectionId}`;
+
+        // Header Seksyen
+        let headerHtml = `
+          <div class="px-3.5 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 ${headerBgClass}">
+            <div class="flex items-center space-x-3">
+              <span class="w-7 h-7 rounded-xl font-bold flex items-center justify-center text-xs shadow-sm ${stepBadgeClass}">
+                ${stepCounter}
+              </span>
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                  <span>${escapeHtml(sec.title)}</span>
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-0.5">
+                  ${sec.description ? escapeHtml(sec.description) : `${secItems.length} soalan dalam bahagian ini`}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full border flex items-center space-x-1 ${badgePillClass}">
+                <span>${sec.badgeText || "Bahagian Soalan"}</span>
+              </span>
+            </div>
+          </div>
+        `;
+
+        // Senarai Soalan Dalam Seksyen
+        let itemsHtml = `<div class="p-3 sm:p-5 space-y-3 sm:space-y-4">`;
+
+        // Nota panduan pintar jika ini adalah seksyen cabang aktif
+        if (sec.category === "conditional_active") {
+          itemsHtml += `
+            <div class="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-start space-x-2.5">
+              <span class="text-base shrink-0 mt-0.5">💡</span>
+              <div class="leading-relaxed">
+                <strong>Paparan Dinamik:</strong> Hanya senarai soalan di bawah <strong>${escapeHtml(sec.triggerChoice || "cabang ini")}</strong> dipaparkan mengikut pilihan pada bahagian sebelumnya. Jika anda menukar pilihan di atas, bahagian ini akan diselaraskan serta-merta.
+              </div>
+            </div>
+          `;
+        }
+
+        secItems.forEach((item, itemIdx) => {
+          const itemMapping = appState.mapping[item.id] || { mappedField: "", fixedValue: "", subMapping: {} };
+
+          // Bina Select Dropdown bagi Medan Utama ISPPK
+          let selectOptionsHtml = `<option value="">Tiada Pemetaan (Guna Pilihan Tetap/Isi Manual)</option>`;
+          SENARAI_MEDAN_ISPPK.forEach(kat => {
+            selectOptionsHtml += `<optgroup label="${kat.kategori}">`;
+            kat.medan.forEach(m => {
+              const isSelected = itemMapping.mappedField === m.key ? "selected" : "";
+              selectOptionsHtml += `<option value="${m.key}" ${isSelected}>${m.label}</option>`;
+            });
+            selectOptionsHtml += `</optgroup>`;
+          });
+
+          // Sub-options pemetaan jika soalan pilihan tetap
+          const subOptionsContainerHtml = renderSubOptionsHtml(item);
+
+          // Lencana jika soalan ini adalah soalan cabang penentu laluan
+          let branchingNotice = "";
+          if (item.hasBranching || (item.choiceTargets && Object.keys(item.choiceTargets).length > 0)) {
+            const currentChosen = (appState.mapping[item.id] && appState.mapping[item.id].fixedValue) || "";
+            branchingNotice = `
+              <div class="mt-2 text-[11px] text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-2.5 py-1.5 flex items-center space-x-1.5 font-medium">
+                <span>🔄</span>
+                <span><strong>Soalan Penentu Alur:</strong> Pilihan anda di sini menentukan paparan bahagian sekolah/soalan berikutnya.</span>
+                ${currentChosen
+                  ? `<span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold ml-auto shrink-0">Aktif: ${escapeHtml(currentChosen)}</span>`
+                  : `<span class="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full font-bold ml-auto shrink-0">Belum Dipilih (Klik pilihan jawapan di bawah)</span>`}
+              </div>
+            `;
+          }
+
+          const isMapped = Boolean(itemMapping.mappedField);
+          const selectBorderRingClass = isMapped
+            ? "border-2 border-emerald-600 ring-2 ring-emerald-500/20"
+            : "border border-slate-300";
+
+          itemsHtml += `
+            <div class="bg-white border border-slate-200 rounded-xl p-3.5 sm:p-4 shadow-sm space-y-3 transition hover:border-slate-300" id="pemetaanCard_${item.id}">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex items-start space-x-3 max-w-xl">
+                  <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    ${itemIdx + 1}
+                  </span>
+                  <div>
+                    <h5 class="text-sm font-bold text-slate-900 leading-snug">${escapeHtml(item.label)}</h5>
+                    <div class="flex items-center space-x-2 mt-1">
+                      <span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">ID: ${item.id}</span>
+                      <span class="text-[11px] text-slate-500 font-medium">(${item.type})</span>
+                      ${item.required ? `<span class="text-[10px] bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded border border-rose-200 font-bold">* Mandatori</span>` : ""}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dropdown Pilihan Medan ISPPK -->
+                <div class="w-full md:w-80 shrink-0">
+                  <label class="block text-[11px] font-semibold text-slate-600 mb-1">Padankan dengan Data ISPPK Sekolah:</label>
+                  <select
+                    id="selectMedan_${item.id}"
+                    onchange="handleMappingChange('${item.id}', this.value)"
+                    class="w-full text-xs font-medium bg-slate-50 ${selectBorderRingClass} rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500 transition text-slate-800"
+                  >
+                    ${selectOptionsHtml}
+                  </select>
+                </div>
+              </div>
+
+              ${branchingNotice}
+              ${subOptionsContainerHtml}
+            </div>
+          `;
+        });
+
+        itemsHtml += `</div>`;
+
+        secCard.innerHTML = headerHtml + itemsHtml;
+        container.appendChild(secCard);
+
+        // Jika terdapat seksyen cabang lain yang disembunyikan, tunjukkan banner maklumat selepas seksyen cabang aktif
+        if (sec.category === "conditional_active" && hiddenBranchesCount > 0 && !hasShownBranchNotice) {
+          hasShownBranchNotice = true;
+          const noticeDiv = document.createElement("div");
+          noticeDiv.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm";
+          noticeDiv.innerHTML = `
+            <div class="flex items-center space-x-2.5">
+              <span class="text-base text-slate-500">🛡️</span>
+              <div>
+                <span class="font-semibold text-slate-800">Laluan Dinamik Dioptimumkan:</span>
+                <span class="text-slate-500 ml-1">Sebanyak <strong>${hiddenBranchesCount} kumpulan sekolah bagi daerah lain</strong> disembunyikan secara automatik agar pilihan berfokus.</span>
+              </div>
+            </div>
+            <span class="text-[11px] text-emerald-700 bg-emerald-100 font-bold px-2.5 py-1 rounded-full border border-emerald-200 shrink-0 self-start sm:self-auto">
+              ✓ Mengikut Alur Google Form
+            </span>
+          `;
+          container.appendChild(noticeDiv);
+        } else if (!activeChosenValue && hiddenBranchesCount > 0 && !hasShownBranchNotice && sec.pageIndex === 0) {
+          hasShownBranchNotice = true;
+          const noticeDiv = document.createElement("div");
+          noticeDiv.className = "p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm";
+          noticeDiv.innerHTML = `
+            <div class="flex items-center space-x-2.5">
+              <span class="text-base text-amber-600">ℹ️</span>
+              <div>
+                <span class="font-semibold text-amber-900">Bahagian Cabang Bersyarat:</span>
+                <span class="text-amber-800 ml-1">Sebanyak <strong>${hiddenBranchesCount} kumpulan sekolah bagi daerah</strong> disembunyikan sementara. Sila klik satu pilihan tetap pada <strong>Soalan Penentu Alur</strong> di atas untuk membuka bahagian yang berkaitan.</span>
+              </div>
+            </div>
+            <span class="text-[11px] text-amber-700 bg-amber-100 font-bold px-2.5 py-1 rounded-full border border-amber-200 shrink-0 self-start sm:self-auto">
+              Menunggu Pilihan
+            </span>
+          `;
+          container.appendChild(noticeDiv);
+        }
+
+        stepCounter++;
+      });
+    }
+
+    // Penjana HTML Pilihan Jawapan Form Google dengan Butang Pilihan Nilai Tetap
+    function renderSubOptionsHtml(item) {
+      if (!item.options || item.options.length === 0) return "";
+      const currentFixed = (appState.mapping[item.id] && appState.mapping[item.id].fixedValue) || "";
+      const choiceTargets = item.choiceTargets || {};
+
+      return `
+        <div id="subMappingContainer_${item.id}" class="mt-3 pt-3 border-t border-slate-100 bg-slate-50/70 p-3 rounded-lg">
+          <div class="text-[11px] font-bold text-slate-700 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <span>Pilihan Jawapan Form Google (${item.options.length}):</span>
+            <span class="text-[10px] text-slate-500 font-normal">Klik mana-mana pilihan untuk jadikannya <strong>Nilai Tetap</strong> (cth: PPD / Kod Sekolah / Negeri)</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 sm:max-h-56 overflow-y-auto standard-scrollbar p-1" id="subOptionsList_${item.id}">
+            ${item.options.map((opt, optIdx) => {
+              const isFixed = currentFixed === opt;
+              const hasTarget = choiceTargets[opt] && choiceTargets[opt] !== "-2";
+              const activeClass = isFixed
+                ? "border-2 border-emerald-600 bg-emerald-50 text-emerald-950 font-bold ring-2 ring-emerald-500/20 shadow-sm"
+                : "bg-white border border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40";
+              const badgeHtml = isFixed
+                ? `<span class="bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px] shrink-0 flex items-center space-x-1"><span>✓</span><span>Tetap</span></span>`
+                : `<span class="text-slate-400 font-medium text-[10px] shrink-0 opacity-0 group-hover:opacity-100 transition">Pilih Tetap</span>`;
+
+              const branchIndicator = hasTarget
+                ? `<span class="text-[9px] text-indigo-600 bg-indigo-50 px-1 py-0.2 rounded border border-indigo-100 ml-1.5" title="Membawa ke bahagian khusus">➔ Cabang</span>`
+                : "";
+
+              return `
+                <div
+                  id="optItem_${item.id}_${optIdx}"
+                  data-opt-val="${escapeHtml(opt)}"
+                  onclick="handleSelectFixedOptionByIndex('${item.id}', ${optIdx})"
+                  class="opt-choice-item group cursor-pointer rounded-lg p-2 text-[11px] flex items-center justify-between transition ${activeClass}"
+                  title="Klik untuk tetapkan '${escapeHtml(opt)}' sebagai nilai tetap bagi soalan ini"
+                >
+                  <span class="truncate mr-2 flex items-center">
+                    <span>${optIdx + 1}. ${escapeHtml(opt)}</span>
+                    ${branchIndicator}
+                  </span>
+                  <div class="opt-badge-area shrink-0">
+                    ${badgeHtml}
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    // Mengemas kini pilihan tetap secara in-place dalam DOM untuk mengelakkan sebarang peristiwa scroll-to-top
+    function kemasKiniSubOptionsDom(itemId, fixedValue) {
+      const subList = document.getElementById(`subOptionsList_${itemId}`);
+      if (!subList) return false;
+      const item = (appState.formItems || []).find(it => it.id === itemId);
+      if (!item || !item.options) return false;
+
+      const optionEls = subList.querySelectorAll(".opt-choice-item");
+      if (!optionEls || optionEls.length === 0) return false;
+
+      optionEls.forEach((el, idx) => {
+        const optVal = item.options[idx];
+        const isFixed = (optVal !== undefined && optVal === fixedValue);
+        const badgeArea = el.querySelector(".opt-badge-area");
+
+        if (isFixed) {
+          el.className = "opt-choice-item group cursor-pointer rounded-lg p-2 text-[11px] flex items-center justify-between transition border-2 border-emerald-600 bg-emerald-50 text-emerald-950 font-bold ring-2 ring-emerald-500/20 shadow-sm";
+          if (badgeArea) {
+            badgeArea.innerHTML = `<span class="bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-[10px] shrink-0 flex items-center space-x-1"><span>✓</span><span>Tetap</span></span>`;
+          }
+        } else {
+          el.className = "opt-choice-item group cursor-pointer rounded-lg p-2 text-[11px] flex items-center justify-between transition bg-white border border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40";
+          if (badgeArea) {
+            badgeArea.innerHTML = `<span class="text-slate-400 font-medium text-[10px] shrink-0 opacity-0 group-hover:opacity-100 transition">Pilih Tetap</span>`;
+          }
+        }
+      });
+      return true;
+    }
+
+    // Mengemas kini gaya border dan ring bagi elemen SELECT pemetaan medan mengikut pilihan
+    function kemasKiniGayaSelectMedan(itemId, isMapped) {
+      const sel = document.getElementById(`selectMedan_${itemId}`);
+      if (!sel) return;
+      if (isMapped) {
+        sel.classList.remove("border", "border-slate-300");
+        sel.classList.add("border-2", "border-emerald-600", "ring-2", "ring-emerald-500/20");
+      } else {
+        sel.classList.remove("border-2", "border-emerald-600", "ring-2", "ring-emerald-500/20");
+        sel.classList.add("border", "border-slate-300");
+      }
+    }
+
+    // Pengendali Klik Pilihan Nilai Tetap Melalui Indeks Pilihan
+    function handleSelectFixedOptionByIndex(itemId, optIdx) {
+      const item = (appState.formItems || []).find(it => it.id === itemId);
+      if (!item || !item.options || item.options[optIdx] === undefined) return;
+      handleSelectFixedOption(itemId, item.options[optIdx]);
+    }
+
+    // Pengendali Klik Pilihan Nilai Tetap bagi Soalan
+    function handleSelectFixedOption(itemId, optValue) {
+      if (!appState.mapping[itemId]) {
+        appState.mapping[itemId] = { mappedField: "", fixedValue: "", subMapping: {} };
+      }
+
+      const item = (appState.formItems || []).find(it => it.id === itemId);
+      const isBranchingQuestion = item && (item.hasBranching || (item.choiceTargets && Object.keys(item.choiceTargets).length > 0));
+
+      // Jika soalan ini ialah soalan penentu alur (hasBranching)
+      if (isBranchingQuestion) {
+        // A. Pastikan mana-mana pilihan yang ditetapkan dalam paparan dinamik dibatalkan penetapannya sebelum disembunyikan
+        batalkanPenetapanSeksyenDinamik();
+
+        // B. Batalkan penetapan pilihan dalam mana-mana soalan penentu alur yang lain
+        // (Pastikan hanya satu soalan penentu alur dan satu pilihan item bagi soalan tersebut yang ditetapkan)
+        (appState.formItems || []).forEach(otherItem => {
+          if (otherItem.id !== itemId) {
+            const isOtherBranching = otherItem.hasBranching || (otherItem.choiceTargets && Object.keys(otherItem.choiceTargets).length > 0);
+            if (isOtherBranching && appState.mapping[otherItem.id]) {
+              appState.mapping[otherItem.id].fixedValue = "";
+              appState.mapping[otherItem.id].mappedField = "";
+              appState.mapping[otherItem.id].subMapping = {};
+              const otherSel = document.getElementById(`selectMedan_${otherItem.id}`);
+              if (otherSel) otherSel.value = "";
+              kemasKiniGayaSelectMedan(otherItem.id, false);
+            }
+          }
+        });
+
+        // C. Tetapkan pilihan atau batalkan jika pilihan yang sama diklik semula
+        if (appState.mapping[itemId].fixedValue === optValue) {
+          // Batalkan pilihan item dalam soalan penentu alur (toggle off)
+          appState.mapping[itemId].fixedValue = "";
+          appState.mapping[itemId].mappedField = "";
+        } else {
+          appState.mapping[itemId].fixedValue = optValue;
+          appState.mapping[itemId].mappedField = "";
+        }
+
+        const sel = document.getElementById(`selectMedan_${itemId}`);
+        if (sel) sel.value = "";
+        kemasKiniGayaSelectMedan(itemId, false);
+
+        // D. Simpan kedudukan scroll semasa kontena pilihan dan tetingkap
+        const subList = document.getElementById(`subOptionsList_${itemId}`);
+        const savedScrollTop = subList ? subList.scrollTop : 0;
+        const savedWindowY = window.scrollY;
+
+        // Jana semula seluruh alur paparan Tab 2 secara responsif
+        renderPemetaanTab2(appState.formItems);
+
+        // Pulihkan semula kedudukan scroll kontena dan tetingkap
+        const restoredSubList = document.getElementById(`subOptionsList_${itemId}`);
+        if (restoredSubList) {
+          restoredSubList.scrollTop = savedScrollTop;
+        }
+        window.scrollTo({ top: savedWindowY, behavior: "instant" });
+
+        appState.isMappingSaved = false;
+        semakStatusKesediaanPemetaan();
+        return;
+      }
+
+      // Jika soalan biasa (bukan soalan penentu alur)
+      if (appState.mapping[itemId].fixedValue === optValue) {
+        appState.mapping[itemId].fixedValue = "";
+      } else {
+        appState.mapping[itemId].fixedValue = optValue;
+        // Tetapkan dropdown 'Padankan dengan Data ISPPK Sekolah' kepada 'Tiada Pemetaan (Guna Pilihan Tetap/Isi Manual)'
+        appState.mapping[itemId].mappedField = "";
+        const sel = document.getElementById(`selectMedan_${itemId}`);
+        if (sel) sel.value = "";
+        kemasKiniGayaSelectMedan(itemId, false);
+      }
+
+      // Simpan kedudukan scroll semasa kontena pilihan dan tetingkap
+      const subList = document.getElementById(`subOptionsList_${itemId}`);
+      const savedScrollTop = subList ? subList.scrollTop : 0;
+
+      // Kemas kini pilihan secara in-place dalam DOM tanpa sebarang peristiwa scroll-to-top
+      const updated = kemasKiniSubOptionsDom(itemId, appState.mapping[itemId].fixedValue);
+      if (!updated && item) {
+        const subContainer = document.getElementById(`subMappingContainer_${itemId}`);
+        if (subContainer) {
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = renderSubOptionsHtml(item);
+          if (tempDiv.firstElementChild) {
+            subContainer.replaceWith(tempDiv.firstElementChild);
+            const restoredSubList = document.getElementById(`subOptionsList_${itemId}`);
+            if (restoredSubList) {
+              restoredSubList.scrollTop = savedScrollTop;
+            }
+          }
+        }
+      }
+
+      appState.isMappingSaved = false;
+      semakStatusKesediaanPemetaan();
+    }
+
+    // Pengendali Perubahan Pilihan Dropdown Pemetaan
+    function handleMappingChange(itemId, mappedField) {
+      if (!appState.mapping[itemId]) {
+        appState.mapping[itemId] = { mappedField: "", fixedValue: "", subMapping: {} };
+      }
+      appState.mapping[itemId].mappedField = mappedField;
+
+      const item = (appState.formItems || []).find(it => it.id === itemId);
+      const isBranchingQuestion = item && (item.hasBranching || (item.choiceTargets && Object.keys(item.choiceTargets).length > 0));
+
+      if (isBranchingQuestion) {
+        // Batalkan pilihan dalam paparan dinamik
+        batalkanPenetapanSeksyenDinamik();
+
+        // Batalkan sebarang penetapan pada soalan penentu alur lain
+        (appState.formItems || []).forEach(otherItem => {
+          if (otherItem.id !== itemId) {
+            const isOtherBranching = otherItem.hasBranching || (otherItem.choiceTargets && Object.keys(otherItem.choiceTargets).length > 0);
+            if (isOtherBranching && appState.mapping[otherItem.id]) {
+              appState.mapping[otherItem.id].fixedValue = "";
+              appState.mapping[otherItem.id].mappedField = "";
+              appState.mapping[otherItem.id].subMapping = {};
+              const otherSel = document.getElementById(`selectMedan_${otherItem.id}`);
+              if (otherSel) otherSel.value = "";
+              kemasKiniGayaSelectMedan(otherItem.id, false);
+            }
+          }
+        });
+
+        if (mappedField) {
+          appState.mapping[itemId].fixedValue = "";
+        }
+
+        kemasKiniGayaSelectMedan(itemId, Boolean(mappedField));
+        renderPemetaanTab2(appState.formItems);
+        appState.isMappingSaved = false;
+        semakStatusKesediaanPemetaan();
+        return;
+      }
+
+      // Kemas kini gaya border dan ring bagi elemen SELECT mengikut pilihan
+      kemasKiniGayaSelectMedan(itemId, Boolean(mappedField));
+
+      // Jika pengguna memilih medan data ISPPK, kosongkan pilihan tetap jika ada
+      if (mappedField) {
+        appState.mapping[itemId].fixedValue = "";
+        const updated = kemasKiniSubOptionsDom(itemId, "");
+        if (!updated) {
+          const item = (appState.formItems || []).find(it => it.id === itemId);
+          if (item && item.options && item.options.length > 0) {
+            const subContainer = document.getElementById(`subMappingContainer_${itemId}`);
+            const subList = document.getElementById(`subOptionsList_${itemId}`);
+            const savedScrollTop = subList ? subList.scrollTop : 0;
+            if (subContainer) {
+              const tempDiv = document.createElement("div");
+              tempDiv.innerHTML = renderSubOptionsHtml(item);
+              if (tempDiv.firstElementChild) {
+                subContainer.replaceWith(tempDiv.firstElementChild);
+                const restoredSubList = document.getElementById(`subOptionsList_${itemId}`);
+                if (restoredSubList) {
+                  restoredSubList.scrollTop = savedScrollTop;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      appState.isMappingSaved = false;
+      semakStatusKesediaanPemetaan();
+    }
+
+    // Algoritma Auto-Padan Pintar
+    function handleAutoPadanPintar() {
+      if (!appState.formItems || appState.formItems.length === 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Tiada Elemen",
+          text: "Sila dapatkan elemen soalan terlebih dahulu.",
+          confirmButtonColor: "#4f46e5"
+        });
+        return;
+      }
+
+      let padanCount = 0;
+      let hasMappedBranching = false;
+
+      appState.formItems.forEach(item => {
+        const isBranching = item.hasBranching || (item.choiceTargets && Object.keys(item.choiceTargets).length > 0);
+        // Pastikan hanya satu soalan penentu alur dipadankan
+        if (isBranching && hasMappedBranching) {
+          return;
+        }
+
+        const lbl = (item.label || "").toLowerCase();
+        let targetKey = "";
+
+        // Logik padanan kata kunci
+        if (lbl.includes("kod sekolah")) targetKey = "sekolah.kodSekolah";
+        else if (lbl.includes("nama sekolah")) targetKey = "sekolah.namaSekolah";
+        else if (lbl.includes("negeri")) targetKey = "sekolah.negeri";
+        else if (lbl.includes("ppd") || lbl.includes("pejabat pendidikan")) targetKey = "sekolah.ppd";
+        else if (lbl.includes("emel sekolah") || lbl.includes("e-mel sekolah")) targetKey = "sekolah.emelSekolah";
+        else if (lbl.includes("nama guru")) targetKey = "guru.nama";
+        else if (lbl.includes("emel guru") || lbl.includes("e-mel guru") || (lbl.includes("delima") && !lbl.includes("pencerap"))) targetKey = "guru.emel";
+        else if (lbl.includes("jantina")) targetKey = "guru.jantina";
+        else if (lbl.includes("opsyen")) targetKey = "guru.opsyen";
+        else if (lbl.includes("nama pencerap")) targetKey = "pencerap.nama";
+        else if (lbl.includes("jawatan pencerap") || (lbl.includes("jawatan") && lbl.includes("pencerap"))) targetKey = "pencerap.jawatan";
+        else if (lbl.includes("tarikh") && lbl.includes("tahun")) targetKey = "pencerap.tarikh_tahun";
+        else if (lbl.includes("tarikh") && lbl.includes("bulan")) targetKey = "pencerap.tarikh_bulan";
+        else if (lbl.includes("tarikh") && lbl.includes("hari")) targetKey = "pencerap.tarikh_hari";
+        else if (lbl.includes("tarikh")) targetKey = "pencerap.tarikh";
+        else if (lbl.includes("masa")) targetKey = "pencerap.masa";
+        else if (lbl.includes("mata pelajaran") || lbl.includes("subjek")) targetKey = "pdp.mataPelajaran";
+        else if (lbl.includes("tajuk") || lbl.includes("topik")) targetKey = "pdp.tajuk";
+        else if (lbl.includes("bilangan murid") || lbl.includes("bil. murid")) targetKey = "pdp.bilMurid";
+        else if (lbl.includes("tingkatan") || (lbl.includes("tahun") && !lbl.includes("tarikh"))) targetKey = "pdp.tingkatan";
+        else if (lbl.includes("nama kelas") || lbl.includes("aliran") || lbl.includes("kelas")) targetKey = "pdp.namaKelas";
+        else if (lbl.includes("perancangan") && (lbl.includes("skor") || lbl.includes("guru") || lbl.includes("domain"))) targetKey = "skorM_Perancangan";
+        else if (lbl.includes("pelaksanaan") && (lbl.includes("skor") || lbl.includes("guru") || lbl.includes("domain"))) targetKey = "skorM_Pelaksanaan";
+        else if (lbl.includes("refleksi") && (lbl.includes("skor") || lbl.includes("guru") || lbl.includes("domain"))) targetKey = "skorM_Refleksi";
+        else if (lbl.includes("murid") && (lbl.includes("skor") || lbl.includes("domain") || lbl.includes("pembelajar"))) targetKey = "skorM_Murid";
+        else if (lbl.includes("jumlah skor")) targetKey = "jumlahSkorM";
+        else if (lbl.includes("peratus")) targetKey = "peratusM";
+        else if (lbl.includes("ringkasan tahap")) targetKey = "tahapM_ringkas";
+        else if (lbl.includes("tahap kbat") || lbl.includes("tahap pembudayaan")) targetKey = "tahapM";
+        else if (lbl.includes("rumusan pencerap") || lbl.includes("rumusan")) targetKey = "rumusanPencerap";
+
+        if (targetKey) {
+          if (isBranching) {
+            hasMappedBranching = true;
+          }
+          if (!appState.mapping[item.id]) appState.mapping[item.id] = {};
+          appState.mapping[item.id].mappedField = targetKey;
+          appState.mapping[item.id].fixedValue = "";
+          const sel = document.getElementById(`selectMedan_${item.id}`);
+          if (sel) {
+            sel.value = targetKey;
+            kemasKiniGayaSelectMedan(item.id, true);
+          }
+          padanCount++;
+        }
+      });
+
+      if (hasMappedBranching) {
+        batalkanPenetapanSeksyenDinamik();
+        renderPemetaanTab2(appState.formItems);
+      }
+
+      appState.isMappingSaved = false;
+      semakStatusKesediaanPemetaan();
+
+      Swal.fire({
+        icon: "success",
+        title: "Auto-Padan Pintar Selesai",
+        text: `${padanCount} daripada ${appState.formItems.length} elemen soalan berjaya dipadankan secara automatik. Sila semak padanan sebelum menyimpan.`,
+        confirmButtonColor: "#4f46e5"
+      });
+    }
+
+    // Semak Adakah Pemetaan Telah Disimpan Bersama URL Semasa untuk Diaktifkan Tab 3
+    function semakStatusKesediaanPemetaan() {
+      let mappedCount = 0;
+      Object.keys(appState.mapping).forEach(id => {
+        const m = appState.mapping[id];
+        if (m && (m.mappedField || m.fixedValue)) {
+          mappedCount++;
+        }
+      });
+
+      const currentUrl = (document.getElementById("inputFormUrl")?.value || "").trim();
+      const isSameSavedUrl = adakahUrlSamaDenganSimpanan(currentUrl);
+
+      // Syarat: Pemetaan telah disimpan untuk URL semasa dan sekurang-kurangnya 3 elemen telah dipetakan
+      const isValid = Boolean(appState.isMappingSaved && isSameSavedUrl && mappedCount >= 3);
+      updateTab3LockStatus(isValid);
+    }
+
+    // Simpan Pemetaan Bersama URL Google Form ke Backend & Storan Tempatan
+    function handleSimpanPemetaan() {
+      const url = (document.getElementById("inputFormUrl").value || "").trim();
+      if (!url) {
+        Swal.fire({
+          icon: "warning",
+          title: "URL Tiada",
+          text: "Sila masukkan URL Google Form.",
+          confirmButtonColor: "#4f46e5"
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: "Menyimpan Pemetaan...",
+        text: "Menyimpan konfigurasi pemetaan bersama URL Google Form...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      const tandakanSimpananBerjaya = () => {
+        appState.savedUrl = url;
+        appState.targetUrl = url;
+        appState.isMappingSaved = true;
+        try {
+          localStorage.setItem("ISPPK_GF_SAVED_PEMETAAN", JSON.stringify({
+            url: url,
+            resolvedUrl: appState.resolvedUrl || url,
+            mapping: appState.mapping,
+            formItems: appState.formItems,
+            formPages: appState.formPages,
+            savedAt: new Date().toISOString()
+          }));
+        } catch (e) {}
+        updateTab3LockStatus(true);
+      };
+
+      if (window.google && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler((res) => {
+            Swal.close();
+            if (res && res.success) {
+              tandakanSimpananBerjaya();
+              Swal.fire({
+                icon: "success",
+                title: "Pemetaan Berjaya Disimpan!",
+                text: "Pemetaan bersama URL Google Form telah disimpan. Tab 'Hantar ke Google Forms' kini diaktifkan.",
+                confirmButtonColor: "#10b981",
+                confirmButtonText: "Buka Tab 3 Sekarang"
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  switchTab(3);
+                }
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Ralat Simpanan",
+                text: res?.error || "Gagal menyimpan pemetaan ke server.",
+                confirmButtonColor: "#4f46e5"
+              });
+            }
+          })
+          .withFailureHandler((err) => {
+            Swal.close();
+            Swal.fire({
+              icon: "error",
+              title: "Ralat",
+              text: "Ralat: " + err.message,
+              confirmButtonColor: "#4f46e5"
+            });
+          })
+          .simpanPemetaanGF(url, appState.mapping, appState.formItems, appState.formPages);
+      } else {
+        // Luar persekitaran GAS
+        setTimeout(() => {
+          Swal.close();
+          tandakanSimpananBerjaya();
+          Swal.fire({
+            icon: "success",
+            title: "Pemetaan Disimpan (Simulasi)",
+            text: "Pemetaan bersama URL telah disimpan. Tab 3 kini sedia digunakan.",
+            confirmButtonColor: "#10b981"
+          }).then(() => switchTab(3));
+        }, 500);
+      }
+    }
+
+    // =========================================================================
+    // TAB 3: SENARAI GURU & PENGHANTARAN GOOGLE FORMS
+    // =========================================================================
+    function handleMuatSemulaRekodGuru() {
+      const tbody = document.getElementById("tableGuruBody");
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="py-8 text-center text-slate-400">
+            <div class="flex items-center justify-center space-x-2">
+              <svg class="animate-spin h-5 w-5 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              <span>Mengimbas pangkalan data PENGISIAN bagi rekod guru lengkap Skor M...</span>
+            </div>
+          </td>
+        </tr>
+      `;
+
+      if (window.google && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler((res) => {
+            if (res && res.success && res.senaraiGuru) {
+              appState.senaraiGuruM = res.senaraiGuru;
+              appState.filteredGuruM = [...res.senaraiGuru];
+              renderJadualGuruM(appState.filteredGuruM);
+            } else {
+              tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500 font-semibold">${res?.error || "Tiada rekod ditemui."}</td></tr>`;
+            }
+          })
+          .withFailureHandler((err) => {
+            tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500">Ralat: ${err.message}</td></tr>`;
+          })
+          .getRekodGuruSkorMuktamad();
+      } else {
+        // Data Contoh Simpanan Ujian Luar GAS
+        setTimeout(() => {
+          const mockData = janaanOlokOlokGuruM();
+          appState.senaraiGuruM = mockData;
+          appState.filteredGuruM = [...mockData];
+          renderJadualGuruM(appState.filteredGuruM);
+        }, 500);
+      }
+    }
+
+    function renderJadualGuruM(senarai) {
+      const tbody = document.getElementById("tableGuruBody");
+      const lblJumlah = document.getElementById("lblJumlahGuruLengkap");
+
+      lblJumlah.textContent = `Menunjukkan ${senarai.length} daripada ${appState.senaraiGuruM.length} orang guru`;
+
+      if (!senarai || senarai.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="py-12 text-center text-slate-400">
+              <div class="text-3xl mb-2">📋</div>
+              <div class="text-sm font-bold text-slate-700">Tiada Rekod Guru Lengkap Skor M</div>
+              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                Hanya guru yang telah dinilai lengkap markah pencerapan muktamad oleh pencerap akan tersenarai di sini.
+              </p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = "";
+
+      senarai.forEach((g, idx) => {
+        const statusBadge = binaHtmlStatusRekod(g.idRekod);
+
+        let tahapBadgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+        if (g.tahapM_ringkas === "Baik") tahapBadgeColor = "bg-blue-50 text-blue-700 border-blue-200";
+        else if (g.tahapM_ringkas === "Sederhana") tahapBadgeColor = "bg-amber-50 text-amber-700 border-amber-200";
+        else if (g.tahapM_ringkas === "Minimum") tahapBadgeColor = "bg-orange-50 text-orange-700 border-orange-200";
+        else if (g.tahapM_ringkas === "Tidak Memenuhi") tahapBadgeColor = "bg-rose-50 text-rose-700 border-rose-200";
+
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50/80 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-3 text-center font-bold text-slate-500">${idx + 1}</td>
+
+          <!-- 1. Nama Guru Dicerap Sahaja -->
+          <td class="py-3 px-4 font-bold text-slate-900 leading-snug">
+            ${escapeHtml(g.guru?.nama || "-")}
+          </td>
+
+          <!-- 2. Maklumat PdP -->
+          <td class="py-3 px-4">
+            <div class="font-semibold text-slate-800">${escapeHtml(g.pdp?.mataPelajaran || "-")}</div>
+            <div class="text-[11px] text-slate-500 truncate max-w-[180px]" title="${escapeHtml(g.pdp?.tajuk || "")}">${escapeHtml(g.pdp?.tajuk || "-")}</div>
+            <div class="text-[11px] text-indigo-600 font-medium mt-0.5">${escapeHtml(g.pdp?.namaKelas || "")}</div>
+            <div class="text-[10px] text-blue-600 font-medium mt-0.5">${escapeHtml(g.pdp?.tingkatan || "")}</div>
+          </td>
+
+          <!-- 3. Tarikh & Masa Pencerapan (Hari, Tarikh Malaysia & Masa AM/PM) -->
+          <td class="py-3 px-3 text-center whitespace-nowrap">
+            ${formatTarikh(g.pencerap?.tarikh, g.pencerap?.masa)}
+          </td>
+
+          <!-- 4. Skor Komponen: Perancangan, Pelaksanaan, Refleksi, Murid (Menegak Sejajar Header) -->
+          <td class="py-3 px-3 text-center whitespace-nowrap">
+            <div class="flex flex-col items-center justify-center space-y-1">
+              <span class="w-9 text-center bg-blue-50 text-blue-700 border border-blue-200 font-extrabold py-0.5 rounded text-xs" title="Skor M Perancangan">
+                ${g.skorM_Perancangan ?? "-"}
+              </span>
+              <span class="w-9 text-center bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold py-0.5 rounded text-xs" title="Skor M Pelaksanaan">
+                ${g.skorM_Pelaksanaan ?? "-"}
+              </span>
+              <span class="w-9 text-center bg-purple-50 text-purple-700 border border-purple-200 font-extrabold py-0.5 rounded text-xs" title="Skor M Refleksi">
+                ${g.skorM_Refleksi ?? "-"}
+              </span>
+              <span class="w-9 text-center bg-amber-50 text-amber-800 border border-amber-200 font-extrabold py-0.5 rounded text-xs" title="Skor M Murid">
+                ${g.skorM_Murid ?? "-"}
+              </span>
+            </div>
+          </td>
+
+          <!-- 5. Peratus & Tahap M -->
+          <td class="py-3 px-4 text-center whitespace-nowrap">
+            <div class="text-sm font-extrabold text-slate-900">${g.peratusM}%</div>
+            <span class="inline-block mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded border ${tahapBadgeColor}">
+              ${g.tahapM_ringkas || g.tahapM}
+            </span>
+          </td>
+
+          <!-- 6. Status -->
+          <td class="py-3 px-4 text-center">
+            <div id="statusBadge_${g.idRekod}">
+              ${statusBadge}
+            </div>
+          </td>
+
+          <!-- 7. Tindakan Penghantaran: Butang Buka Pra-Isi Pintar Sahaja -->
+          <td class="py-3 px-3 sm:px-4 text-center whitespace-nowrap">
+            <button
+              id="btnBukaGF_${g.idRekod}"
+              onclick="handleBukaPraIsiPintar('${g.idRekod}')"
+              class="inline-flex items-center justify-center space-x-1 sm:space-x-1.5 ${appState.openedPopups?.has(g.idRekod) ? 'bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white ring-2 ring-amber-300' : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white'} px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-semibold transition shadow-sm hover:shadow"
+              title="${appState.openedPopups?.has(g.idRekod) ? 'Tetingkap Google Form sedang dibuka. Klik untuk fokus kembali tetingkap tersebut.' : 'Buka tetingkap pembantu Google Form dengan data siap diisi terus ke halaman Submit'}"
+            >
+              <span>${appState.openedPopups?.has(g.idRekod) ? '🌐' : '📄'}</span>
+              <span class="hidden sm:inline">${appState.openedPopups?.has(g.idRekod) ? 'Google Form Dibuka' : 'Buka Pra-Isi Pintar'}</span>
+              <span class="sm:hidden">${appState.openedPopups?.has(g.idRekod) ? 'Dibuka' : 'Pra-Isi'}</span>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Penapis Carian Jadual Guru
+    function handleFilterGuruTable() {
+      const q = (document.getElementById("inputCariGuru").value || "").toLowerCase().trim();
+      if (!q) {
+        appState.filteredGuruM = [...appState.senaraiGuruM];
+      } else {
+        appState.filteredGuruM = appState.senaraiGuruM.filter(g => {
+          const nama = (g.guru?.nama || "").toLowerCase();
+          const emel = (g.guru?.emel || "").toLowerCase();
+          const subjek = (g.pdp?.mataPelajaran || "").toLowerCase();
+          const kelas = (g.pdp?.namaKelas || "").toLowerCase();
+          return nama.includes(q) || emel.includes(q) || subjek.includes(q) || kelas.includes(q);
+        });
+      }
+      renderJadualGuruM(appState.filteredGuruM);
+    }
+
+    // =========================================================================
+    // JANA DOKUMEN PDF JADUAL GURU UNTUK PENGHANTARAN HANTAR (A4)
+    // =========================================================================
+    async function handleSimpanPDFJadualGuru() {
+      if (typeof dompdf === "undefined" && typeof window.dompdf === "undefined") {
+        Swal.fire({
+          icon: "error",
+          title: "Pustaka Belum Sedia",
+          text: "Pustaka dompdf.js belum selesai dimuatkan. Sila pastikan sambungan internet stabil dan cuba sebentar lagi.",
+          confirmButtonColor: "#0284c7",
+        });
+        return;
+      }
+
+      const tableContainer = document.getElementById("containerJadualGuruBersediaHantar");
+      if (!tableContainer) return;
+
+      const senarai = appState.filteredGuruM || appState.senaraiGuruM || [];
+      if (!senarai || senarai.length === 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Tiada Data Guru",
+          text: "Tiada rekod guru lengkap Skor Muktamad untuk dijana sebagai fail PDF.",
+          confirmButtonColor: "#0284c7",
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: "Menjana PDF Jadual Guru...",
+        html: "Sedang menyusun senarai guru untuk penghantaran dalam format A4 potret...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const sekolah = appState.sekolah || {};
+      const tahunLaporan = appState.currentYear || new Date().getFullYear();
+      const tarikhHariIni = new Date().toISOString().split("T")[0];
+
+      // Cipta container DOM offscreen dalam format A4 Potret (794px pada 96 DPI)
+      const container = document.createElement("div");
+      container.id = "isppk-jadual-guru-pdf-container";
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = "794px"; // Lebar standard A4 potret pada 96 DPI
+      container.style.backgroundColor = "#ffffff";
+      container.style.color = "#0f172a";
+      container.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+      container.style.padding = "20px 24px";
+      container.style.boxSizing = "border-box";
+
+      // 1. Header Dokumen Rasmi
+      const headerHtml = `
+        <div divisionDisable style="border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 12px; page-break-inside: avoid; break-inside: avoid;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+            <div style="flex: 1;">
+              <div style="font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #075985;">
+                KEMENTERIAN PENDIDIKAN MALAYSIA
+              </div>
+              ${sekolah.namaSekolah || sekolah.ppd
+                ? `
+                  <div style="font-size: 11px; font-weight: 700; color: #1e293b; text-transform: uppercase; margin-top: 2px;">
+                    ${escapeHtml([sekolah.namaSekolah, sekolah.ppd].filter(Boolean).join(" • "))}
+                  </div>
+                `
+                : ""}
+              <h1 style="font-size: 15px; font-weight: 900; color: #0f172a; margin: 3px 0 2px 0; line-height: 1.3; text-transform: uppercase;">
+                JADUAL GURU UNTUK PENGHANTARAN KE GOOGLE FORMS ISPPK
+              </h1>
+              <p style="font-size: 10.5px; font-weight: 700; color: #0284c7; margin: 0;">
+                Instrumen Standard Penilaian Pembudayaan KBAT — Skor Muktamad Pencerapan
+              </p>
+            </div>
+            <div style="text-align: left; font-size: 9.5px; color: #64748b; font-family: monospace; shrink-0;">
+              <div style="background: #f0f9ff; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 6px;">
+                <div>Tahun: <b style="color: #0369a1;">${escapeHtml(tahunLaporan)}</b></div>
+                <div>Tarikh: <b>${escapeHtml(formatTarikhPaparan(tarikhHariIni))}</b></div>
+                <div>Jumlah: <b style="color: #059669;">${senarai.length} Guru</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = headerHtml;
+
+      // 2. Fungsi Pembantu Membina Header Jadual Rasmi (Boleh Berulang Pada Setiap Muka Surat)
+      const binaTheadHtml = (isSambungan = false) => `
+        <thead>
+          <tr divisionDisable style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; page-break-inside: avoid; break-inside: avoid;">
+            <th style="width: 4%; padding: 7px 3px; text-align: center; border: 1px solid #cbd5e1; font-size: 9.5px; font-weight: 800; color: #334155; vertical-align: middle;">BIL</th>
+            <th style="width: 22%; padding: 7px 6px; text-align: left; border: 1px solid #cbd5e1; font-size: 9.5px; font-weight: 800; color: #334155; vertical-align: middle;">
+              NAMA GURU DICERAP ${isSambungan ? '<span style="font-size: 8px; font-weight: 700; color: #0284c7; text-transform: none; margin-left: 2px;">(Sambungan)</span>' : ''}
+            </th>
+            <th style="width: 24%; padding: 7px 6px; text-align: left; border: 1px solid #cbd5e1; font-size: 9.5px; font-weight: 800; color: #334155; vertical-align: middle;">MAKLUMAT PDP</th>
+            <th style="width: 12%; padding: 7px 4px; text-align: center; border: 1px solid #cbd5e1; font-size: 9.5px; font-weight: 800; color: #334155; vertical-align: middle;">TARIKH & MASA PENCERAPAN</th>
+            <th style="width: 14%; padding: 6px 3px; text-align: center; border: 1px solid #cbd5e1; font-size: 9.5px; font-weight: 800; color: #334155; vertical-align: middle;">
+              <div style="font-size: 9.5px; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; color: #334155;">SKOR KOMPONEN</div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 8px; font-weight: 700;">
+                <span style="display: inline-block; width: 75px; text-align: center; background: #dbeafe; color: #1d4ed8; padding: 1px 3px; border-radius: 3px; border: 1px solid #bfdbfe;">Perancangan</span>
+                <span style="display: inline-block; width: 75px; text-align: center; background: #d1fae5; color: #047857; padding: 1px 3px; border-radius: 3px; border: 1px solid #a7f3d0;">Pelaksanaan</span>
+                <span style="display: inline-block; width: 75px; text-align: center; background: #f3e8ff; color: #7e22ce; padding: 1px 3px; border-radius: 3px; border: 1px solid #e9d5ff;">Refleksi</span>
+                <span style="display: inline-block; width: 75px; text-align: center; background: #fef3c7; color: #92400e; padding: 1px 3px; border-radius: 3px; border: 1px solid #fde68a;">Murid</span>
+              </div>
+            </th>
+            <th style="width: 11%; padding: 7px 4px; text-align: center; border: 1px solid #cbd5e1; font-size: 9.5px; font-weight: 800; color: #334155; vertical-align: middle;">PERATUS &amp; TAHAP</th>
+            <th style="width: 13%; padding: 7px 4px; text-align: center; border: 1px solid #cbd5e1; font-size: 9.5px; font-weight: 800; color: #334155; vertical-align: middle;">STATUS PENGHANTARAN</th>
+          </tr>
+        </thead>
+      `;
+
+      // 3. Fungsi Pembantu Membina Setiap Baris Guru (TR)
+      const binaTrGuruHtml = (g, idx) => {
+        const bg = idx % 2 === 1 ? "#f8fafc" : "#ffffff";
+        const subInfo = appState.submittedRecords && appState.submittedRecords[g.idRekod];
+        const isSubmitted = Boolean(subInfo);
+
+        // Penentuan Warna Lencana Tahap
+        let tahapBg = "#ecfdf5";
+        let tahapColor = "#047857";
+        let tahapBorder = "#a7f3d0";
+        const tRingkas = g.tahapM_ringkas || g.tahapM || "-";
+        if (tRingkas === "Baik") {
+          tahapBg = "#eff6ff"; tahapColor = "#1d4ed8"; tahapBorder = "#bfdbfe";
+        } else if (tRingkas === "Sederhana") {
+          tahapBg = "#fffbeb"; tahapColor = "#b45309"; tahapBorder = "#fde68a";
+        } else if (tRingkas === "Minimum") {
+          tahapBg = "#fff7ed"; tahapColor = "#c2410c"; tahapBorder = "#fed7aa";
+        } else if (tRingkas === "Tidak Memenuhi") {
+          tahapBg = "#fff1f2"; tahapColor = "#be123c"; tahapBorder = "#fecdd3";
+        }
+
+        // Lencana Status Penghantaran
+        let statusHtml = "";
+        if (isSubmitted) {
+          statusHtml = `
+            <div style="display: inline-flex; align-items: center; justify-content: center; gap: 3px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 9999px; padding: 2px 7px; font-size: 8.5px; font-weight: 800; line-height: 1.2;">
+              <span>✓</span><span>Telah Dihantar</span>
+            </div>
+            ${subInfo.timestamp ? `<div style="font-size: 8px; color: #64748b; margin-top: 3px; font-family: monospace;">${escapeHtml(subInfo.timestamp)}</div>` : ""}
+          `;
+        } else {
+          statusHtml = `
+            <div style="display: inline-block; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 9999px; padding: 2px 7px; font-size: 8.5px; font-weight: 700; line-height: 1.2;">
+              Belum Dihantar
+            </div>
+          `;
+        }
+
+        return `
+          <tr divisionDisable style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0; page-break-inside: avoid; break-inside: avoid;">
+            <!-- 1. Bil -->
+            <td style="padding: 6px 3px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle; font-weight: 700; color: #64748b; font-size: 10px;">
+              ${idx + 1}
+            </td>
+
+            <!-- 2. Nama Guru -->
+            <td style="padding: 6px 6px; text-align: left; border: 1px solid #e2e8f0; vertical-align: middle; font-weight: 800; color: #0f172a; font-size: 10px; line-height: 1.35; word-break: break-word;">
+              ${escapeHtml(g.guru?.nama || "-")}
+            </td>
+
+            <!-- 3. Maklumat PdP -->
+            <td style="padding: 6px 6px; text-align: left; border: 1px solid #e2e8f0; vertical-align: middle;">
+              <div style="font-weight: 700; color: #1e293b; font-size: 10px; line-height: 1.3; word-break: break-word;">${escapeHtml(g.pdp?.mataPelajaran || "-")}</div>
+              ${g.pdp?.tajuk ? `<div style="font-size: 9px; color: #64748b; line-height: 1.25; margin-top: 2px; word-break: break-word;">${escapeHtml(g.pdp.tajuk)}</div>` : ""}
+              ${g.pdp?.namaKelas ? `<div style="font-size: 9px; font-weight: 700; color: #4f46e5; margin-top: 2px;">${escapeHtml(g.pdp.namaKelas)}</div>` : ""}
+              ${g.pdp?.tingkatan ? `<div style="font-size: 8.5px; font-weight: 600; color: #2563eb; margin-top: 1px;">${escapeHtml(g.pdp.tingkatan)}</div>` : ""}
+            </td>
+
+            <!-- 4. Tarikh & Masa Pencerapan -->
+            <td style="padding: 6px 4px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle; font-size: 9.5px; line-height: 1.3;">
+              ${formatTarikh(g.pencerap?.tarikh, g.pencerap?.masa, true)}
+            </td>
+
+            <!-- 5. Skor Komponen -->
+            <td style="padding: 6px 3px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 2.5px;">
+                <span style="display: inline-block; width: 34px; text-align: center; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 800; font-size: 9.5px; border-radius: 4px; padding: 1px 0;" title="Perancangan">
+                  ${g.skorM_Perancangan ?? "-"}
+                </span>
+                <span style="display: inline-block; width: 34px; text-align: center; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 800; font-size: 9.5px; border-radius: 4px; padding: 1px 0;" title="Pelaksanaan">
+                  ${g.skorM_Pelaksanaan ?? "-"}
+                </span>
+                <span style="display: inline-block; width: 34px; text-align: center; background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; font-weight: 800; font-size: 9.5px; border-radius: 4px; padding: 1px 0;" title="Refleksi">
+                  ${g.skorM_Refleksi ?? "-"}
+                </span>
+                <span style="display: inline-block; width: 34px; text-align: center; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; font-weight: 800; font-size: 9.5px; border-radius: 4px; padding: 1px 0;" title="Murid">
+                  ${g.skorM_Murid ?? "-"}
+                </span>
+              </div>
+            </td>
+
+            <!-- 6. Peratus & Tahap -->
+            <td style="padding: 6px 4px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">
+              <div style="font-size: 13px; font-weight: 900; color: #0f172a; line-height: 1;">${g.peratusM}%</div>
+              <div style="margin-top: 4px;">
+                <span style="display: inline-block; background: ${tahapBg}; color: ${tahapColor}; border: 1px solid ${tahapBorder}; font-size: 8.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 4px;">
+                  ${escapeHtml(tRingkas)}
+                </span>
+              </div>
+            </td>
+
+            <!-- 7. Status Penghantaran -->
+            <td style="padding: 6px 4px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle;">
+              ${statusHtml}
+            </td>
+          </tr>
+        `;
+      };
+
+      // 4. Pembahagian Berskala Selamat Mengikut Halaman (Page Chunks)
+      // Muka Surat 1: Memuatkan maksimum 9 guru (mengimbangi Header Dokumen KPM setinggi ~110px)
+      // Muka Surat 2+: Memuatkan maksimum 10 guru secara stabil dan selesa (tiada risiko terpotong)
+      const PAGE_1_LIMIT = 9;
+      const PAGE_N_LIMIT = 10;
+      const chunks = [];
+
+      if (senarai.length <= PAGE_1_LIMIT) {
+        chunks.push({ pageNum: 1, items: senarai, offset: 0 });
+      } else {
+        chunks.push({ pageNum: 1, items: senarai.slice(0, PAGE_1_LIMIT), offset: 0 });
+        let offset = PAGE_1_LIMIT;
+        let pageNum = 2;
+        while (offset < senarai.length) {
+          chunks.push({
+            pageNum: pageNum,
+            items: senarai.slice(offset, offset + PAGE_N_LIMIT),
+            offset: offset
+          });
+          offset += PAGE_N_LIMIT;
+          pageNum++;
+        }
+      }
+
+      // 5. Sambungkan Blok-Blok Jadual Mengikut Halaman dengan Pembahagi Eksplisit [pageBreak]
+      let kandunganDokumenHtml = headerHtml;
+
+      chunks.forEach((chunk, cIdx) => {
+        const isFirstPage = cIdx === 0;
+        const barisTrList = chunk.items.map((g, subIdx) => binaTrGuruHtml(g, chunk.offset + subIdx)).join("");
+
+        // Penanda pemecahan halaman eksklusif dompdf.js bagi halaman 2 dan seterusnya
+        const pageBreakHtml = !isFirstPage
+          ? `<div pageBreak style="height: 0; min-height: 0; line-height: 0; font-size: 0; margin: 0; padding: 0;"></div><div style="height: 14px;"></div>`
+          : "";
+
+        const tableBlockHtml = `
+          ${pageBreakHtml}
+          <div style="border: 1px solid #cbd5e1; background-color: #ffffff; margin-bottom: 0;">
+            <table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10px; margin: 0; padding: 0;">
+              <colgroup>
+                <col style="width: 4%;">
+                <col style="width: 22%;">
+                <col style="width: 24%;">
+                <col style="width: 12%;">
+                <col style="width: 14%;">
+                <col style="width: 11%;">
+                <col style="width: 13%;">
+              </colgroup>
+              ${binaTheadHtml(!isFirstPage)}
+              <tbody>
+                ${barisTrList}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        kandunganDokumenHtml += tableBlockHtml;
+      });
+
+      container.innerHTML = kandunganDokumenHtml;
+      document.body.appendChild(container);
+
+      const namaSekolahBersih = (sekolah.namaSekolah || "Sekolah")
+        .trim()
+        .replace(/[^a-zA-Z0-9_\u0600-\u06FF]/g, "_");
+      const pdfFilename = `Jadual_Guru_Untuk_ISPPK_${tahunLaporan}_${namaSekolahBersih}.pdf`;
+
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        if (document.fonts && document.fonts.ready) {
+          try {
+            await document.fonts.ready;
+          } catch (_) {}
+        }
+
+        const pdfEngine = window.dompdf || dompdf;
+        const pdfOptions = {
+          format: "a4", // A4 Potret
+          pageWidthPt: 595.28,
+          pageHeightPt: 841.89,
+          pagination: true,
+          marginPt: [24, 20, 24, 20],
+          backgroundColor: "#ffffff",
+          pageConfig: {
+            excludePages: [1],
+            header: {
+              content: "JADUAL GURU UNTUK PENGHANTARAN KE GOOGLE FORMS ISPPK",
+              height: 18,
+              contentFontSize: 8,
+              contentColor: "#64748b",
+              contentPosition: "centerLeft",
+              padding: [4, 20, 0, 20],
+            },
+            footer: {
+              content: "Muka Surat ${currentPage} / ${totalPages}  |  Kementerian Pendidikan Malaysia",
+              height: 18,
+              contentFontSize: 8,
+              contentColor: "#64748b",
+              contentPosition: "center",
+              padding: [0, 20, 4, 20],
+            },
+          },
+          metadata: {
+            title: `Jadual Guru Untuk Penghantaran - ${sekolah.namaSekolah || "ISPPK"}`,
+            author: appState.authData?.nama || "Penyelaras KBAT",
+            subject: "Senarai Guru Untuk Penghantaran ke Google Forms ISPPK",
+            creator: "Aplikasi Instrumen Bestari Penilaian PdP",
+          },
+        };
+
+        if (typeof pdfEngine.downloadPDF === "function") {
+          await pdfEngine.downloadPDF(container, pdfOptions, pdfFilename);
+        } else {
+          const blob = await pdfEngine(container, pdfOptions);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = pdfFilename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 30000);
+        }
+
+        Swal.fire({
+          toast: true,
+          position: "top-end",
+          icon: "success",
+          title: `Dokumen PDF "${pdfFilename}" berjaya dimuat turun.`,
+          showConfirmButton: false,
+          timer: 3500,
+        });
+      } catch (err) {
+        console.error("Ralat penjanaan PDF Jadual Guru:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Menjana PDF",
+          text: "Ralat semasa menjana fail PDF: " + (err.message || err),
+          confirmButtonColor: "#e11d48",
+        });
+      } finally {
+        if (container.parentNode) {
+          container.parentNode.removeChild(container);
+        }
+      }
+    }
+
+    // =========================================================================
+    // PENJANAAN URL BERPARAMETER & PENGHANTARAN POST
+    // =========================================================================
+
+    // Menyelaraskan Nilai Data ISPPK dengan Tepat Mengikut Pilihan Google Forms (cth: 'Lelaki' -> 'LELAKI')
+    function selaraskanNilaiDenganPilihanForm(val, options) {
+      if (!options || options.length === 0 || val === undefined || val === null) return val;
+      const strVal = String(val).trim();
+      if (!strVal) return val;
+
+      // 1. Padanan Tepat (Case-Sensitive)
+      const exact = options.find(opt => opt === strVal);
+      if (exact) return exact;
+
+      // 2. Padanan Tidak Peka Huruf Besar/Kecil (Case-Insensitive) - Cth: 'Lelaki' -> 'LELAKI'
+      const lowerVal = strVal.toLowerCase();
+      const caseMatch = options.find(opt => (opt || "").trim().toLowerCase() === lowerVal);
+      if (caseMatch) return caseMatch;
+
+      // 3. Padanan Normalisasi Tanda Sempang, Simbol '&', dan Ruang Putih (Cth: '21 - 30 orang' -> '21 – 30 orang')
+      const normalize = (s) => (s || "")
+        .toLowerCase()
+        .replace(/[\u2012\u2013\u2014\u2015]/g, "-")
+        .replace(/&amp;/g, "&")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const normVal = normalize(strVal);
+      const normMatch = options.find(opt => normalize(opt) === normVal);
+      if (normMatch) return normMatch;
+
+      return strVal;
+    }
+
+    // Mendapatkan Emel Pencerap Aktif untuk parameter rasmi Google Forms (emailAddress)
+    function dapatkanEmelPencerapAktif(record) {
+      // 1. Daripada state authData sesi aktif (paling tepat & rasmi)
+      if (appState.authData && appState.authData.email) {
+        return String(appState.authData.email).trim();
+      }
+      // 2. Daripada parameter URL (authEmail / email)
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramEmail = urlParams.get("authEmail") || urlParams.get("email");
+        if (paramEmail) return String(paramEmail).trim();
+      } catch (e) {}
+
+      // 3. Daripada localStorage ISPPK_OBSERVER_SESSION
+      try {
+        const stored = localStorage.getItem("ISPPK_OBSERVER_SESSION");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.email) return String(parsed.email).trim();
+        }
+      } catch (e) {}
+
+      // 4. Sandaran daripada objek rekod pencerap
+      if (record && record.pencerap && (record.pencerap.email || record.pencerap.emel)) {
+        return String(record.pencerap.email || record.pencerap.emel).trim();
+      }
+
+      return "";
+    }
+
+    // Senarai medan ISPPK yang memerlukan nilai dalam HURUF BESAR bagi Google Forms
+    const MEDAN_WAJIB_HURUF_BESAR_GF = new Set([
+      "guru.nama",
+      "guru.jantina",
+      "guru.opsyen",
+      "pdp.mataPelajaran",
+      "pdp.tajuk",
+      "pdp.namaKelas"
+    ]);
+
+    // Membina Parameter Payload daripada Rekod Guru Berdasarkan Pemetaan Aktif
+    function binaPayloadParameter(record) {
+      const params = {};
+
+      // Dapatkan analisa seksyen semasa untuk menapis seksyen yang aktif dipaparkan sahaja
+      const { sections } = analisaAlurSeksyenDinamik(appState.formItems, appState.formPages);
+      const activeSectionIds = new Set();
+      sections.forEach(sec => {
+        if (sec.shouldDisplay) {
+          activeSectionIds.add(String(sec.sectionId));
+        }
+      });
+
+      Object.keys(appState.mapping).forEach(itemId => {
+        const itemMap = appState.mapping[itemId];
+        if (!itemMap) return;
+
+        // Cari item soalan daripada appState.formItems (mengandungi senarai pilihan rasmi Google Forms)
+        const formItem = (appState.formItems || []).find(it => it.id === itemId);
+        if (formItem) {
+          const itemSecId = formItem.sectionId ? String(formItem.sectionId) : ("PAGE_" + (formItem.pageIndex || 0));
+          // Jika seksyen bagi item ini tidak dipaparkan (contoh: disembunyikan kerana cabang lain), jangan masukkan ke payload
+          if (activeSectionIds.size > 0 && !activeSectionIds.has(itemSecId) && !activeSectionIds.has(String(formItem.sectionId))) {
+            return;
+          }
+        }
+
+        // Keutamaan 1: Pilihan Nilai Tetap (cth: PPD, Kod Sekolah, Negeri)
+        if (itemMap.fixedValue !== undefined && itemMap.fixedValue !== null && itemMap.fixedValue !== "") {
+          params[itemId] = String(itemMap.fixedValue);
+          return;
+        }
+
+        // Keutamaan 2: Medan Dinamik ISPPK
+        if (itemMap.mappedField) {
+          let val = dapatkanNilaiDaripadaObjek(record, itemMap.mappedField);
+          if (val !== undefined && val !== null && val !== "") {
+            // Jika ada sub-pemetaan khusus
+            if (itemMap.subMapping && itemMap.subMapping[val]) {
+              val = itemMap.subMapping[val];
+            }
+
+            // Tukarkan kepada HURUF BESAR jika medan termasuk dalam ketetapan huruf besar Google Forms
+            if (MEDAN_WAJIB_HURUF_BESAR_GF.has(itemMap.mappedField)) {
+              val = String(val).toUpperCase();
+            }
+
+            // Selaraskan nilai dengan pilihan jawapan Google Forms (cth: 'Lelaki' -> 'LELAKI')
+            if (formItem && formItem.options && formItem.options.length > 0) {
+              val = selaraskanNilaiDenganPilihanForm(val, formItem.options);
+            }
+
+            // Selaraskan nilai masa pencerapan ke format 24-jam standard Google Forms (HH:mm)
+            if (itemMap.mappedField === "pencerap.masa") {
+              val = normalisasikanMasa24Jam(val);
+            }
+
+            // Pastikan medan yang memerlukan huruf besar kekal dalam HURUF BESAR
+            if (MEDAN_WAJIB_HURUF_BESAR_GF.has(itemMap.mappedField)) {
+              val = String(val).toUpperCase();
+            }
+
+            params[itemId] = String(val);
+          }
+        }
+      });
+
+      // Keutamaan 3: Parameter Wajib Emel Respons Google Forms ('emailAddress')
+      // Menyertakan emel pencerap yang sedang aktif bagi memenuhi ketetapan borang JPN
+      const emelPencerap = dapatkanEmelPencerapAktif(record);
+      if (emelPencerap) {
+        params["emailAddress"] = emelPencerap;
+      }
+
+      return params;
+    }
+
+    // Mengambil Nilai Bersarang daripada Objek Rekod (contoh: "guru.nama" -> record.guru.nama)
+    function dapatkanNilaiDaripadaObjek(obj, path) {
+      if (!obj || !path) return "";
+      if (path === "pencerap.email" || path === "pencerap.emel") {
+        return (obj.pencerap && (obj.pencerap.email || obj.pencerap.emel)) || dapatkanEmelPencerapAktif(obj);
+      }
+      const parts = path.split(".");
+      let cur = obj;
+      for (let p of parts) {
+        if (cur === undefined || cur === null) return "";
+        cur = cur[p];
+      }
+      return cur;
+    }
+
+    // =========================================================================
+    // MOD PEMBANTU PINTAR (POPUP COMPANION, SEMATAN IFRAME, & POST RECOVERY)
+    // =========================================================================
+
+    /**
+     * Analisis Pintar Dinamik Google Forms:
+     * Mengira parameter `pageHistory` secara dinamik berasaskan senarai elemen soalan (`appState.formItems`)
+     * dan struktur seksyen borang (`appState.formPages`) yang diekstrak daripada `FB_PUBLIC_LOAD_DATA_`.
+     *
+     * Sesuai dan serasi secara universal bagi sebarang URL Google Form (mana-mana negeri, format PPD bercabang,
+     * mahupun jumlah halaman berbeza 2, 4, 8, atau 15 halaman) tanpa bergantung kepada pemetaan tetap (hardcoded).
+     *
+     * @param {Object} params - Objek entri yang dipadankan dan diisi (cth: { "entry.123": "Nilai", ... })
+     * @return {string} - Rentetan turutan nombor halaman (cth: "0,2,6,7" atau "0,1,2")
+     */
+    function kiraPageHistoryDinamik(params) {
+      const visitedPages = new Set();
+      visitedPages.add(0); // Halaman 0 sentiasa halaman permulaan borang Google Forms
+
+      const items = appState.formItems || [];
+      const pages = appState.formPages || [];
+
+      // 1. Kenal pasti indeks halaman bagi setiap medan entry yang diisikan data
+      Object.keys(params).forEach(k => {
+        if (!k.startsWith("entry.")) return;
+        const rawId = k.replace("entry.", "");
+        const item = items.find(it => it.id === k || it.rawId === rawId);
+        if (item && typeof item.pageIndex === "number") {
+          visitedPages.add(item.pageIndex);
+        }
+      });
+
+      // 2. Kenal pasti nombor indeks halaman tertinggi bagi borang ini (maxPageIndex)
+      let maxPageIndex = 0;
+      items.forEach(it => {
+        if (typeof it.pageIndex === "number" && it.pageIndex > maxPageIndex) {
+          maxPageIndex = it.pageIndex;
+        }
+      });
+
+      if (Array.isArray(pages) && pages.length > 0) {
+        pages.forEach(p => {
+          if (typeof p.pageIndex === "number" && p.pageIndex > maxPageIndex) {
+            maxPageIndex = p.pageIndex;
+          }
+        });
+      }
+
+      // 3. Tentukan halaman penamat (halaman yang mempunyai butang SUBMIT / Hantar)
+      const answeredPages = Array.from(visitedPages);
+      const highestAnswered = Math.max(...answeredPages);
+
+      // Secara default dalam Google Forms, halaman penamat adalah halaman tertinggi (maxPageIndex)
+      // atau halaman tertinggi yang mempunyai jawapan
+      let targetSubmitPage = maxPageIndex;
+      if (highestAnswered > 0 && highestAnswered <= maxPageIndex) {
+        targetSubmitPage = Math.max(highestAnswered, maxPageIndex);
+      }
+
+      visitedPages.add(targetSubmitPage);
+
+      // 4. Susun nombor halaman secara menaik mengikut nilai integer: cth: [0, 2, 6, 7] -> "0,2,6,7"
+      const sortedPages = Array.from(visitedPages).sort((a, b) => a - b);
+      const historyStr = sortedPages.join(",");
+
+      console.info(`[ISPPK Dinamik] Parameter pageHistory: "${historyStr}" (Halaman Submit: ${targetSubmitPage}, Jumlah Elemen: ${items.length})`);
+      return historyStr;
+    }
+
+    // Alias keserasian
+    const kiraPageHistoryTepat = kiraPageHistoryDinamik;
+
+    /**
+     * Membina URL Lengkap Berparameter Google Forms:
+     * Menggunakan endpoint /formResponse (bukan /viewform) dan TANPA 'usp=pp_url'
+     * bersama parameter 'pageHistory' yang dikira secara dinamik agar Google Forms
+     * terus membuka seksyen/halaman terakhir yang mengandungi butang Submit (Hantar).
+     *
+     * @param {Object} record - Objek rekod pencerapan guru
+     * @return {Object} { fullUrl, params, pageHistory }
+     */
+    function binaUrlPrefilledLengkap(record) {
+      const params = binaPayloadParameter(record);
+      if (Object.keys(params).length === 0) {
+        return { fullUrl: "", params: {} };
+      }
+
+      let baseUrl = (appState.resolvedUrl || appState.targetUrl || "").trim();
+      // Gunakan endpoint /formResponse agar Google Forms memproses pageHistory dan terus ke halaman Submit
+      baseUrl = baseUrl.split("?")[0].replace(/\/viewform.*$/, "/formResponse");
+      if (!baseUrl.includes("/formResponse")) {
+        const m = baseUrl.match(/^(https:\/\/docs\.google\.com\/forms\/(?:u\/\d+\/)?d\/(?:e\/[^\/]+|[^\/]+))/i);
+        if (m) baseUrl = m[1] + "/formResponse";
+      }
+
+      // Pastikan segmen profil Google (/u/X/) disertakan supaya Google Forms dibuka dengan akaun DELIMa yang sah
+      const accIndex = appState.googleAccountIndex !== undefined && appState.googleAccountIndex !== null ? String(appState.googleAccountIndex) : "1";
+      if (baseUrl.includes("/forms/")) {
+        baseUrl = baseUrl.replace(/\/forms\/(?:u\/\d+\/)?d\//i, `/forms/u/${accIndex}/d/`);
+      }
+
+      const searchParams = new URLSearchParams();
+      // JANGAN masukkan 'usp=pp_url' kerana ia memaksa Google Forms membuka Halaman 0
+
+      // Parameter authuser untuk memantapkan penentuan akaun sesi Google
+      searchParams.append("authuser", accIndex);
+
+      Object.keys(params).forEach(k => {
+        searchParams.append(k, params[k]);
+      });
+
+      // Masukkan parameter pageHistory yang tepat secara dinamik agar terus ke halaman Submit
+      const pageHistoryStr = kiraPageHistoryDinamik(params);
+      if (pageHistoryStr) {
+        searchParams.append("pageHistory", pageHistoryStr);
+      }
+      return {
+        fullUrl: `${baseUrl}?${searchParams.toString()}`,
+        params: params,
+        pageHistory: pageHistoryStr
+      };
+    }
+
+    // Pengurusan Status & Paparan Butang Buka Google Form
+    const activePopupWindows = new Map();
+
+    function setButtonStatusBukaGF(idRekod, isOpened) {
+      if (!appState.openedPopups) appState.openedPopups = new Set();
+      if (isOpened) {
+        appState.openedPopups.add(idRekod);
+      } else {
+        appState.openedPopups.delete(idRekod);
+      }
+      const btn = document.getElementById("btnBukaGF_" + idRekod);
+      if (!btn) return;
+      if (isOpened) {
+        btn.innerHTML = `<span>🌐</span><span class="hidden sm:inline">Google Form Dibuka</span><span class="sm:hidden">Dibuka</span>`;
+        btn.className = "inline-flex items-center justify-center space-x-1 sm:space-x-1.5 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-semibold transition shadow-sm hover:shadow ring-2 ring-amber-300";
+        btn.title = "Tetingkap Google Form sedang dibuka. Klik untuk fokus kembali tetingkap tersebut.";
+      } else {
+        btn.innerHTML = `<span>📄</span><span class="hidden sm:inline">Buka Pra-Isi Pintar</span><span class="sm:hidden">Pra-Isi</span>`;
+        btn.className = "inline-flex items-center justify-center space-x-1 sm:space-x-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-semibold transition shadow-sm hover:shadow";
+        btn.title = "Buka tetingkap pembantu Google Form dengan data siap diisi terus ke halaman Submit";
+      }
+    }
+
+    // Mengendalikan Pembukaan Borang (Hanya Pra-Isi Pintar)
+    function handleBukaPraIsiPintar(idRekod) {
+      // Jika tetingkap bagi rekod ini telah dibuka dan masih aktif, bawakan ia ke hadapan (focus)
+      if (activePopupWindows.has(idRekod)) {
+        const existingWin = activePopupWindows.get(idRekod);
+        if (existingWin && !existingWin.closed) {
+          try {
+            existingWin.focus();
+            return;
+          } catch (e) {}
+        }
+      }
+
+      const record = appState.senaraiGuruM.find(r => r.idRekod === idRekod);
+      if (!record) {
+        Swal.fire({ icon: "error", title: "Rekod Tidak Ditemui" });
+        return;
+      }
+
+      const { fullUrl, params } = binaUrlPrefilledLengkap(record);
+      if (!fullUrl || Object.keys(params).length === 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Tiada Medan Dipetakan",
+          text: "Sila buat pemetaan elemen soalan terlebih dahulu dalam Tab 2.",
+          confirmButtonColor: "#4f46e5"
+        });
+        return;
+      }
+
+      // Salin pautan ke Papan Klip (Clipboard) secara automatik
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(fullUrl).catch(e => console.warn("Clipboard error:", e));
+        }
+      } catch (e) {}
+
+      // Buka dalam Tetingkap Pembantu Pintar (Companion Window)
+      laksanaBukaTetingkapPintar(idRekod, record, fullUrl);
+    }
+
+    // Melancarkan Tetingkap Pembantu Pintar dengan Pemantau Penutupan Automatik
+    function laksanaBukaTetingkapPintar(idRekod, record, fullUrl) {
+      // Tukar label butang kepada 'Google Form Dibuka' sebelum/apabila tetingkap dibuka
+      setButtonStatusBukaGF(idRekod, true);
+
+      const width = 720;
+      const height = 880;
+      const left = Math.max(20, (window.screen.width - width) / 2);
+      const top = Math.max(20, (window.screen.height - height) / 2);
+
+      const popupWin = window.open(
+        fullUrl,
+        `ISPPK_GF_${idRekod.replace(/[^a-zA-Z0-9]/g, '_')}`,
+        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes,status=no,toolbar=no,menubar=no`
+      );
+
+      // Jika pop-up disekat oleh pelayar
+      if (!popupWin || popupWin.closed || typeof popupWin.closed === "undefined") {
+        setButtonStatusBukaGF(idRekod, false);
+        Swal.fire({
+          icon: "warning",
+          title: "Popup Disekat",
+          text: "Sila benarkan pop-up pada pelayar anda untuk membuka Google Form.",
+          confirmButtonColor: "#4f46e5"
+        });
+        return;
+      }
+
+      activePopupWindows.set(idRekod, popupWin);
+
+      // Notifikasi Toast
+      Swal.fire({
+        icon: "info",
+        title: "Tetingkap Pembantu Dibuka",
+        text: `Borang bagi ${record.guru?.nama} sedia disemak. Pautan juga telah disalin ke papan klip.`,
+        timer: 3500,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end"
+      });
+
+      // Pemantau Kitaran Hayat Tetingkap (Window Closed Lifecycle Detection)
+      let hasChecked = false;
+      const checkTimer = setInterval(() => {
+        try {
+          if (popupWin.closed && !hasChecked) {
+            hasChecked = true;
+            clearInterval(checkTimer);
+            activePopupWindows.delete(idRekod);
+
+            // Kembalikan label butang kepada asal setelah tetingkap ditutup
+            setButtonStatusBukaGF(idRekod, false);
+
+            // Tetingkap telah ditutup oleh pengguna - tanya pengesahan status hantaran
+            tanyaPengesahanHantaranSelesai(idRekod, record);
+          }
+        } catch (e) {
+          clearInterval(checkTimer);
+          activePopupWindows.delete(idRekod);
+          setButtonStatusBukaGF(idRekod, false);
+        }
+      }, 700);
+    }
+
+    // Dialog Pengesahan Pintar Sejurus Tetingkap Ditutup
+    function tanyaPengesahanHantaranSelesai(idRekod, record) {
+      Swal.fire({
+        title: "Sahkan Status Penghantaran",
+        html: `
+          <div class="text-left text-xs space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div><strong>Guru:</strong> ${escapeHtml(record.guru?.nama)}</div>
+            <div><strong>Mata Pelajaran:</strong> ${escapeHtml(record.pdp?.mataPelajaran)} (${escapeHtml(record.pdp?.namaKelas)})</div>
+            <div><strong>Skor Muktamad (M):</strong> ${record.peratusM}%</div>
+          </div>
+          <p class="text-xs text-slate-600 mt-3">Adakah anda telah berjaya menekan butang <strong>'Hantar' (Submit)</strong> di Google Forms tadi?</p>
+        `,
+        icon: "question",
+        showCancelButton: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        confirmButtonColor: "#059669",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: "✓ Ya, Telah Berjaya Dihantar",
+        cancelButtonText: "Belum / Masih Dalam Proses"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          tandakanStatusRekodDihantar(idRekod);
+          Swal.fire({
+            icon: "success",
+            title: "Status Dikemaskini! 🎉",
+            text: `Rekod bagi "${record.guru?.nama}" telah berjaya ditandakan sebagai Telah Dihantar.`,
+            timer: 2500,
+            showConfirmButton: false,
+            toast: true,
+            position: "top-end"
+          });
+        }
+      });
+    }
+
+    // Format objek Date kepada rentetan tarikh & masa paparan Malaysia (cth: "30 Sep 2026, 09:18")
+    function formatMasaHantaran(dateObj) {
+      const d = (dateObj instanceof Date && !isNaN(dateObj.getTime())) ? dateObj : new Date();
+      return d.toLocaleDateString("ms-MY", { day: "2-digit", month: "short", year: "numeric" }) + ", " +
+             d.toLocaleTimeString("ms-MY", { hour: "2-digit", minute: "2-digit", hour12: false });
+    }
+
+    // Format objek Date kepada nilai input datetime-local (YYYY-MM-DDTHH:mm)
+    function keNilaiDatetimeLocal(dateObj) {
+      const d = (dateObj instanceof Date && !isNaN(dateObj.getTime())) ? dateObj : new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    // Dapatkan nilai YYYY-MM-DDTHH:mm daripada rekod status sedia ada
+    function dapatkanIsoDariRekodStatus(subInfo) {
+      if (subInfo && subInfo.isoDateTime) {
+        return subInfo.isoDateTime;
+      }
+      return keNilaiDatetimeLocal(new Date());
+    }
+
+    // Membina HTML kandungan sel Status mengikut Mod Manual atau Mod Asal
+    function binaHtmlStatusRekod(idRekod) {
+      const subInfo = appState.submittedRecords && appState.submittedRecords[idRekod];
+      const isSubmitted = Boolean(subInfo);
+
+      // 1. Jika BUKAN Mod Manual: kembalikan kepada elemen lencana asal
+      if (!appState.isStatusManualMode) {
+        if (isSubmitted) {
+          return `
+            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center space-x-1 justify-center">
+              <span class="text-emerald-600">✓</span>
+              <span>Telah Dihantar</span>
+            </span>
+            <div class="text-[9px] text-slate-400 text-center mt-0.5">${escapeHtml(subInfo.timestamp || "")}</div>
+          `;
+        }
+        return `
+          <span class="inline-flex flex-col items-center justify-center bg-slate-100 text-slate-600 text-[10px] font-medium px-2.5 py-1 rounded-full border border-slate-200 leading-tight">
+            <span>Belum</span>
+            <span>Dihantar</span>
+          </span>
+        `;
+      }
+
+      // 2. Jika dalam Mod Manual: paparkan Combobox moden + Tarikh/Masa & Ikon Date Picker (jika 'Telah Dihantar')
+      const selectStyle = isSubmitted
+        ? "bg-emerald-50 text-emerald-900 border-emerald-300 focus:ring-2 focus:ring-emerald-500"
+        : "bg-slate-50 text-slate-700 border-slate-300 focus:ring-2 focus:ring-indigo-500";
+
+      const isoVal = dapatkanIsoDariRekodStatus(subInfo);
+      const dateRowHtml = isSubmitted
+        ? `
+          <div class="mt-1.5 inline-flex items-center justify-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">
+            <span class="text-[10px] font-medium text-slate-600 whitespace-nowrap" id="lblTarikhManual_${idRekod}">
+              ${escapeHtml(subInfo.timestamp || "")}
+            </span>
+            <button
+              type="button"
+              onclick="bukaDatePickerStatus('${idRekod}')"
+              class="relative inline-flex items-center justify-center w-5 h-5 rounded hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition cursor-pointer shrink-0"
+              title="Tukar tarikh dan masa penghantaran"
+            >
+              <span class="text-xs leading-none">📅</span>
+              <input
+                type="datetime-local"
+                id="inputPickerStatus_${idRekod}"
+                value="${escapeHtml(isoVal)}"
+                onchange="handleTukarTarikhStatusManual('${idRekod}', this.value)"
+                onclick="event.stopPropagation(); if(this.showPicker){ try{this.showPicker();}catch(e){} }"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              >
+            </button>
+          </div>
+        `
+        : "";
+
+      return `
+        <div class="flex flex-col items-center justify-center">
+          <select
+            id="selManualStatus_${idRekod}"
+            onchange="handleTukarStatusManual('${idRekod}', this.value)"
+            class="w-full min-w-[125px] text-[11px] font-semibold rounded-lg px-2.5 py-1.5 border outline-none transition cursor-pointer shadow-sm ${selectStyle}"
+          >
+            <option value="dihantar" ${isSubmitted ? "selected" : ""}>Telah Dihantar</option>
+            <option value="belum" ${!isSubmitted ? "selected" : ""}>Belum Dihantar</option>
+          </select>
+          ${dateRowHtml}
+        </div>
+      `;
+    }
+
+    // Togol Mod Manual pada Header Status
+    function handleToggleModManualStatus() {
+      appState.isStatusManualMode = !appState.isStatusManualMode;
+      const btn = document.getElementById("btnToggleModManualStatus");
+      if (btn) {
+        btn.setAttribute("aria-pressed", appState.isStatusManualMode ? "true" : "false");
+        if (appState.isStatusManualMode) {
+          btn.className = "inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10px] font-bold normal-case tracking-normal transition-all duration-150 border bg-indigo-600 text-white border-indigo-700 ring-2 ring-indigo-500/30 shadow-inner cursor-pointer";
+        } else {
+          btn.className = "inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10px] font-semibold normal-case tracking-normal transition-all duration-150 border bg-white text-slate-600 border-slate-300 hover:border-indigo-400 hover:text-indigo-700 shadow-sm cursor-pointer";
+        }
+      }
+      kemasKiniSemuaSelStatusDom();
+    }
+
+    // Kemas kini semua sel Status dalam jadual secara in-place
+    function kemasKiniSemuaSelStatusDom() {
+      const senarai = appState.filteredGuruM && appState.filteredGuruM.length > 0
+        ? appState.filteredGuruM
+        : appState.senaraiGuruM || [];
+      senarai.forEach(g => {
+        const badgeElem = document.getElementById(`statusBadge_${g.idRekod}`);
+        if (badgeElem) {
+          badgeElem.innerHTML = binaHtmlStatusRekod(g.idRekod);
+        }
+      });
+    }
+
+    // Simpan perubahan status penghantaran ke LocalStorage dan Server GAS mengikut tahun
+    function simpanDataStatusHantaran() {
+      const thn = String(appState.currentYear || (SERVER_DATA && SERVER_DATA.currentYear) || new Date().getFullYear());
+      const localKey = "ISPPK_GF_SUBMITTED_" + thn;
+      try {
+        localStorage.setItem(localKey, JSON.stringify(appState.submittedRecords));
+      } catch (e) {}
+
+      if (window.google && google.script && google.script.run) {
+        try {
+          google.script.run.simpanStatusHantaranGF(appState.submittedRecords, thn);
+        } catch (e) {}
+      }
+    }
+
+    // Pengendali pertukaran Combobox Status dalam Mod Manual
+    function handleTukarStatusManual(idRekod, statusVal) {
+      if (statusVal === "dihantar") {
+        const now = new Date();
+        appState.submittedRecords[idRekod] = {
+          timestamp: formatMasaHantaran(now),
+          isoDateTime: keNilaiDatetimeLocal(now)
+        };
+      } else {
+        delete appState.submittedRecords[idRekod];
+      }
+
+      simpanDataStatusHantaran();
+
+      const badgeElem = document.getElementById(`statusBadge_${idRekod}`);
+      if (badgeElem) {
+        badgeElem.innerHTML = binaHtmlStatusRekod(idRekod);
+      }
+    }
+
+    // Membuka Date Picker apabila ikon kalendar diklik
+    function bukaDatePickerStatus(idRekod) {
+      const inp = document.getElementById(`inputPickerStatus_${idRekod}`);
+      if (!inp) return;
+      if (typeof inp.showPicker === "function") {
+        try {
+          inp.showPicker();
+          return;
+        } catch (e) {}
+      }
+      inp.focus();
+      inp.click();
+    }
+
+    // Pengendali pertukaran tarikh & masa melalui Date Picker dalam Mod Manual
+    function handleTukarTarikhStatusManual(idRekod, isoValue) {
+      if (!isoValue) return;
+      const parsedDate = new Date(isoValue);
+      if (isNaN(parsedDate.getTime())) return;
+
+      appState.submittedRecords[idRekod] = {
+        timestamp: formatMasaHantaran(parsedDate),
+        isoDateTime: isoValue
+      };
+
+      simpanDataStatusHantaran();
+
+      const badgeElem = document.getElementById(`statusBadge_${idRekod}`);
+      if (badgeElem) {
+        badgeElem.innerHTML = binaHtmlStatusRekod(idRekod);
+      }
+    }
+
+    // Menandakan rekod sebagai dihantar dalam LocalStorage, Server dan UI
+    function tandakanStatusRekodDihantar(idRekod) {
+      const now = new Date();
+      appState.submittedRecords[idRekod] = {
+        timestamp: formatMasaHantaran(now),
+        isoDateTime: keNilaiDatetimeLocal(now)
+      };
+
+      simpanDataStatusHantaran();
+
+      // Kemas kini Lencana Baris
+      const badgeElem = document.getElementById(`statusBadge_${idRekod}`);
+      if (badgeElem) {
+        badgeElem.innerHTML = binaHtmlStatusRekod(idRekod);
+      }
+    }
+
+    function muatSimpananTempatanStatusHantar() {
+      try {
+        const thn = String(appState.currentYear || (SERVER_DATA && SERVER_DATA.currentYear) || new Date().getFullYear());
+        const localKey = "ISPPK_GF_SUBMITTED_" + thn;
+        const raw = localStorage.getItem(localKey) || localStorage.getItem("ISPPK_GF_SUBMITTED");
+        if (raw) {
+          const localParsed = JSON.parse(raw);
+          if (localParsed && typeof localParsed === "object") {
+            appState.submittedRecords = { ...(appState.submittedRecords || {}), ...localParsed };
+          }
+        }
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // KAWALAN KELUAR / TUTUP MODUL
+    // =========================================================================
+    function handleTutupModul() {
+      // 1. Percubaan pantas menutup tetingkap / tab semasa serta-merta
+      try {
+        window.close();
+      } catch (e) {}
+
+      try {
+        window.open("", "_self", "");
+        window.close();
+      } catch (e) {}
+
+      try {
+        if (window.opener) {
+          window.opener = null;
+          window.close();
+        }
+      } catch (e) {}
+
+      try {
+        if (window.top && window.top !== window) {
+          window.top.close();
+        }
+      } catch (e) {}
+
+      // 2. Jika pelayar menyekat penutupan automatik (kerana dasar sekatan pelayar bagi tab)
+      setTimeout(() => {
+        const dest = SERVER_DATA.webAppUrl || SERVER_DATA.ownerUrl || window.location.href.split("?")[0];
+        Swal.fire({
+          title: "Tutup Tab Pelayar",
+          html: `
+            <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+              Pelayar anda menyekat skrip daripada menutup tab ini secara automatik.<br><br>
+              Sila tutup tab ini secara manual dengan menekan kekunci <strong>Ctrl + W</strong> (atau <strong>Cmd + W</strong> pada Mac), atau klik ikon pangkah <strong>✕</strong> pada tab pelayar.
+            </p>
+          `,
+          icon: "info",
+          showCancelButton: true,
+          confirmButtonColor: "#4f46e5",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Kembali ke Portal ISPPK",
+          cancelButtonText: "Kekal di Sini"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = dest + (dest.includes("?") ? "&" : "?") + "mod=pencerap";
+          }
+        });
+      }, 200);
+    }
+
+    function kemaskiniLencanaProfilTab3(idx) {
+      const lblEl = document.getElementById("lblTab3GoogleProfile");
+      if (lblEl) {
+        lblEl.textContent = idx === "1" ? "Slot DELIMa (/u/1/)" : `Akaun #${parseInt(idx) + 1} (/u/${idx}/)`;
+      }
+    }
+
+    function handleTukarProfilGoogle(idx) {
+      appState.googleAccountIndex = String(idx);
+      try { localStorage.setItem("ISPPK_GOOGLE_ACCOUNT_INDEX", String(idx)); } catch (e) {}
+      kemaskiniLencanaProfilTab3(idx);
+
+      // Selaraskan paparan URL input jika sedang memaparkan Google Forms URL
+      const inputEl = document.getElementById("inputFormUrl");
+      if (inputEl && inputEl.value) {
+        const curVal = inputEl.value.trim();
+        if (/^https:\/\/docs\.google\.com\/forms\//i.test(curVal)) {
+          const wasSavedUrl = adakahUrlSamaDenganSimpanan(curVal);
+          const newUrl = curVal.replace(/\/forms\/(?:u\/\d+\/)?d\//i, `/forms/u/${idx}/d/`);
+          inputEl.value = newUrl;
+          appState.targetUrl = newUrl;
+          appState.resolvedUrl = newUrl;
+          if (wasSavedUrl) {
+            appState.savedUrl = newUrl;
+          }
+        }
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: `Profil Akaun #${parseInt(idx) + 1} (/u/${idx}/) Dipilih`,
+        text: `Borang Google Forms kini akan dibuka secara khusus menggunakan slot profil akaun /u/${idx}/ (DELIMa).`,
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end"
+      });
+    }
+
+    function initUrlState() {
+      // Muatkan indeks akaun Google (DELIMa) dari localStorage jika ada
+      let savedAccIndex = null;
+      try { savedAccIndex = localStorage.getItem("ISPPK_GOOGLE_ACCOUNT_INDEX"); } catch (e) {}
+
+      if (savedAccIndex !== null && savedAccIndex !== undefined) {
+        appState.googleAccountIndex = String(savedAccIndex);
+      } else if (appState.targetUrl && /\/forms\/u\/(\d+)\//i.test(appState.targetUrl)) {
+        const m = appState.targetUrl.match(/\/forms\/u\/(\d+)\//i);
+        if (m) appState.googleAccountIndex = m[1];
+      } else {
+        // Lalai kepada '1' bagi akaun kedua DELIMa dalam mod multi-login
+        appState.googleAccountIndex = "1";
+      }
+
+      const selEl = document.getElementById("selGoogleAccountIndex");
+      if (selEl) {
+        selEl.value = appState.googleAccountIndex;
+      }
+      kemaskiniLencanaProfilTab3(appState.googleAccountIndex);
+
+      if (appState.targetUrl) {
+        document.getElementById("inputFormUrl").value = appState.targetUrl;
+        handleUrlInputChange();
+      }
+    }
+
+    // Menormalkan masa ke format standard 24 jam (HH:mm) untuk parameter Google Forms
+    function normalisasikanMasa24Jam(masaStr) {
+      if (!masaStr || masaStr === "-") return "";
+      try {
+        const raw = String(masaStr).trim();
+        const mAmPm = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i);
+        if (mAmPm) {
+          let h = parseInt(mAmPm[1], 10);
+          const min = mAmPm[2];
+          const ampm = mAmPm[3] ? mAmPm[3].toUpperCase() : null;
+          if (ampm === "PM" && h < 12) h += 12;
+          if (ampm === "AM" && h === 12) h = 0;
+          return `${String(h).padStart(2, "0")}:${min}`;
+        }
+        return raw;
+      } catch (e) {
+        return String(masaStr);
+      }
+    }
+
+    // Format masa kepada format 12 jam AM/PM (cth: "10:10" -> "10:10 AM")
+    function formatMasa12Jam(masaStr) {
+      if (!masaStr || masaStr === "-") return "";
+      try {
+        const raw = String(masaStr).trim();
+        if (/am|pm/i.test(raw)) return raw;
+        const m = raw.match(/^(\d{1,2}):(\d{2})/);
+        if (m) {
+          let h = parseInt(m[1], 10);
+          const min = m[2];
+          const ampm = h >= 12 ? "PM" : "AM";
+          h = h % 12;
+          if (h === 0) h = 12;
+          const hStr = h < 10 ? ("0" + h) : String(h);
+          return `${hStr}:${min} ${ampm}`;
+        }
+        return raw;
+      } catch (e) {
+        return String(masaStr);
+      }
+    }
+
+    // Format Tarikh & Masa Malaysia dengan Nama Hari, Tarikh, dan Masa AM/PM (cth: Ahad, 27 Sep 2026, 10:10 AM)
+    function formatTarikh(tarikhStr, masaStr, isPrint = false) {
+      const masaFormatted = formatMasa12Jam(masaStr);
+      if (!tarikhStr || tarikhStr === "-") {
+        if (masaFormatted) {
+          return isPrint
+            ? `<div style="font-size: 9px; font-weight: 700; color: #2563eb;">${masaFormatted}</div>`
+            : `<div class="text-[11px] font-semibold text-blue-600 mt-0.5">${masaFormatted}</div>`;
+        }
+        return "-";
+      }
+
+      try {
+        const raw = String(tarikhStr).trim();
+        const m = raw.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+        if (m) {
+          const year = parseInt(m[1], 10);
+          const month = parseInt(m[2], 10) - 1;
+          const day = parseInt(m[3], 10);
+          const d = new Date(year, month, day);
+          if (!isNaN(d.getTime())) {
+            const namaHari = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"][d.getDay()];
+            const namaBulan = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"][month];
+            
+            if (isPrint) {
+              return `
+                <div style="font-weight: 800; color: #1e293b; line-height: 1.2;">${namaHari}</div>
+                <div style="font-size: 9px; color: #475569; margin-top: 1px;">${day} ${namaBulan} ${year}</div>
+                ${masaFormatted ? `<div style="font-size: 9px; font-weight: 700; color: #2563eb; margin-top: 1px;">${masaFormatted}</div>` : ""}
+              `.trim();
+            }
+
+            return `
+              <div class="font-bold text-slate-800 leading-tight">${namaHari}</div>
+              <div class="text-[11px] text-slate-600 mt-0.5">${day} ${namaBulan} ${year}</div>
+              ${masaFormatted ? `<div class="text-[11px] font-semibold text-blue-600 mt-0.5">${masaFormatted}</div>` : ""}
+            `.trim();
+          }
+        }
+      } catch (e) {}
+
+      const escapedTarikh = escapeHtml(tarikhStr);
+      if (masaFormatted) {
+        return isPrint
+          ? `<div style="font-weight: 700; color: #1e293b;">${escapedTarikh}</div><div style="font-size: 9px; font-weight: 700; color: #2563eb; margin-top: 1px;">${masaFormatted}</div>`
+          : `<div class="font-bold text-slate-800 leading-tight">${escapedTarikh}</div><div class="text-[11px] font-semibold text-blue-600 mt-0.5">${masaFormatted}</div>`;
+      }
+      return escapedTarikh;
+    }
+
+    // Fungsi Pemformatan Tarikh Paparan (cth: '2026-09-24' -> '24 Sep 2026')
+      function formatTarikhPaparan(tStr) {
+        if (!tStr) return "";
+        try {
+          const raw = String(tStr).trim();
+          const parts = raw.split("-");
+          if (parts.length === 3) {
+            const y = parts[0];
+            const mIdx = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            const namaBulan = [
+              "Jan", "Feb", "Mac", "Apr", "Mei", "Jun",
+              "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"
+            ][mIdx];
+            if (namaBulan && !isNaN(d)) {
+              return `${d} ${namaBulan} ${y}`;
+            }
+          }
+        } catch (e) {}
+        return tStr;
+      }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Data Olok-Olok untuk Simulasi Ujian Luar GAS
+    function janaanOlokOlokElemenGF(url) {
+      return {
+        success: true,
+        url: url,
+        title: "Pengumpulan Skor ISPPK KBAT JPN Tahun 2026",
+        pages: [
+          { pageIndex: 0, sectionId: "PAGE_0", title: "Maklumat Am", description: "Peringkat Negeri & Pemilihan Daerah PPD", navDestination: null, isSubmitPage: false },
+          { pageIndex: 1, sectionId: "SEC_PPD_PP", title: "PPD Pasir Puteh", description: "Sekolah-sekolah di bawah PPD Pasir Puteh", navDestination: "SEC_PENCERAPAN", isSubmitPage: false },
+          { pageIndex: 2, sectionId: "SEC_PPD_BCK", title: "PPD Bachok", description: "Sekolah-sekolah di bawah PPD Bachok", navDestination: "SEC_PENCERAPAN", isSubmitPage: false },
+          { pageIndex: 3, sectionId: "SEC_PPD_KB", title: "PPD Kota Bharu", description: "Sekolah-sekolah di bawah PPD Kota Bharu", navDestination: "SEC_PENCERAPAN", isSubmitPage: false },
+          { pageIndex: 4, sectionId: "SEC_PENCERAPAN", title: "Maklumat Pencerapan", description: "Maklumat guru, mata pelajaran dan butiran pencerapan", navDestination: "SEC_SKOR", isSubmitPage: false },
+          { pageIndex: 5, sectionId: "SEC_SKOR", title: "Skor Muktamad ISPPK (Submit)", description: "Pengisian skor komponen perancangan, pelaksanaan, refleksi dan murid", navDestination: "-2", isSubmitPage: true }
+        ],
+        items: [
+          { id: "entry.1336875037", rawId: "1336875037", sectionId: "PAGE_0", pageIndex: 0, label: "Negeri Sekolah", type: "Dropdown", required: true, options: ["Kelantan", "Terengganu", "Pahang", "Kedah"], choiceTargets: {} },
+          {
+            id: "entry.1366910829",
+            rawId: "1366910829",
+            sectionId: "PAGE_0",
+            pageIndex: 0,
+            label: "PPD Sekolah",
+            type: "Dropdown",
+            required: true,
+            options: ["PPD Pasir Puteh", "PPD Bachok", "PPD Kota Bharu"],
+            hasBranching: true,
+            choiceTargets: {
+              "PPD Pasir Puteh": "SEC_PPD_PP",
+              "PPD Bachok": "SEC_PPD_BCK",
+              "PPD Kota Bharu": "SEC_PPD_KB"
+            }
+          },
+          { id: "entry.1849900962", rawId: "1849900962", sectionId: "SEC_PPD_PP", pageIndex: 1, label: "Kod & Nama Sekolah (PPD Pasir Puteh)", type: "Dropdown", required: true, options: ["DBA4001 SK PASIR PUTEH", "DBA4002 SK CHERANG RUKU"], choiceTargets: {} },
+          { id: "entry.1849900963", rawId: "1849900963", sectionId: "SEC_PPD_BCK", pageIndex: 2, label: "Kod & Nama Sekolah (PPD Bachok)", type: "Dropdown", required: true, options: ["DBA0001 SK ALOR BAKAT", "DBA0002 SK BACHOK"], choiceTargets: {} },
+          { id: "entry.1849900964", rawId: "1849900964", sectionId: "SEC_PPD_KB", pageIndex: 3, label: "Kod & Nama Sekolah (PPD Kota Bharu)", type: "Dropdown", required: true, options: ["DBA1040 SK ABDUL HADI", "DBA1041 SK KEM"], choiceTargets: {} },
+          { id: "entry.1045160456", rawId: "1045160456", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Tarikh Pencerapan", type: "Tarikh", isDate: true, required: true, options: [] },
+          { id: "entry.1650776231", rawId: "1650776231", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Nama Guru Dicerap", type: "Teks", required: true, options: [] },
+          { id: "entry.904792413", rawId: "904792413", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Jantina Guru", type: "Pilihan Tunggal", required: true, options: ["Lelaki", "Perempuan"] },
+          { id: "entry.858744864", rawId: "858744864", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Opsyen Guru", type: "Teks", required: true, options: [] },
+          { id: "entry.1876505997", rawId: "1876505997", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Mata Pelajaran Dicerap", type: "Teks", required: true, options: [] },
+          { id: "entry.1631465265", rawId: "1631465265", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Tajuk / Topik PdP", type: "Teks", required: true, options: [] },
+          { id: "entry.225717385", rawId: "225717385", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Bilangan Murid Hadir", type: "Dropdown", required: true, options: ["1 – 10 orang", "11 – 20 orang", "21 – 30 orang", "Lebih 30 orang"] },
+          { id: "entry.539048429", rawId: "539048429", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Tahun / Tingkatan", type: "Dropdown", required: true, options: ["Menengah Rendah (Tingkatan 1, 2, 3)", "Menengah Atas (Tingkatan 4 & 5)"] },
+          { id: "entry.140709488", rawId: "140709488", sectionId: "SEC_PENCERAPAN", pageIndex: 4, label: "Nama Kelas / Aliran", type: "Teks", required: true, options: [] },
+          { id: "entry.349845511", rawId: "349845511", sectionId: "SEC_SKOR", pageIndex: 5, label: "Skor M - Perancangan (Maks 20)", type: "Teks", required: true, options: [] },
+          { id: "entry.1128751221", rawId: "1128751221", sectionId: "SEC_SKOR", pageIndex: 5, label: "Skor M - Pelaksanaan (Maks 25)", type: "Teks", required: true, options: [] },
+          { id: "entry.1417480846", rawId: "1417480846", sectionId: "SEC_SKOR", pageIndex: 5, label: "Skor M - Refleksi (Maks 5)", type: "Teks", required: true, options: [] },
+          { id: "entry.569130956", rawId: "569130956", sectionId: "SEC_SKOR", pageIndex: 5, label: "Skor M - Murid (Maks 50)", type: "Teks", required: true, options: [] },
+          { id: "entry.778899112", rawId: "778899112", sectionId: "SEC_SKOR", pageIndex: 5, label: "Peratus Skor M (%)", type: "Teks", required: true, options: [] },
+          { id: "entry.889911223", rawId: "889911223", sectionId: "SEC_SKOR", pageIndex: 5, label: "Tahap KBAT M", type: "Dropdown", required: true, options: ["Cemerlang", "Baik", "Sederhana", "Minimum", "Tidak Memenuhi"] }
+        ]
+      };
+    }
+
+    function janaanOlokOlokGuruM() {
+      return [
+        {
+          idRekod: "ISPPK-20260926-1059",
+          guru: { nama: "ZURIANI BINTI MOHD.ZIN", emel: "g-90105082@moe-dl.edu.my", jantina: "Perempuan", opsyen: "Pendidikan Islam" },
+          pencerap: { nama: "ZAIMUDDIN BIN HASSAN", jawatan: "GURU BAHASA ARAB", tarikh: "2026-09-26", masa: "09:30" },
+          pdp: { mataPelajaran: "Pendidikan Islam", tajuk: "Sirah Perkembangan Islam", tingkatan: "Menengah Atas (Tingkatan 4 & 5)", namaKelas: "4 KMK" },
+          skorM_Perancangan: 17,
+          skorM_Pelaksanaan: 22,
+          skorM_Refleksi: 4,
+          skorM_Murid: 42,
+          jumlahSkorM: 85,
+          peratusM: 85,
+          tahapM: "Telah membudayakan KBAT dalam PdP secara cemerlang, konsisten dan menyeluruh.",
+          tahapM_ringkas: "Cemerlang"
+        }
+      ];
+    }
+  </script>
+</body>
+</html>
