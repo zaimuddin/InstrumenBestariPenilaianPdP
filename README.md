@@ -4,6 +4,9 @@ Aplikasi percuma ini dibangunkan oleh [SolusiBestariGuru](https://t.me/solusibes
 
 Buat masa sekarang, aplikasi ini menyediakan kemudahan pengurusan bersepadu bagi Instrumen Standard Penilaian Pembudayaan KBAT, di mana sekolah dapat merekodkan penilaian pembudayaan KBAT secara dalam talian dan menghantar rekod penilaian kepada KPM melalui borang Google Forms rasmi bagi setiap negeri.
 
+<img src="IMG/ss01.png" />
+<img src="IMG/ss02.png" />
+
 ---
 
 ## 🚀 Panduan Pemasangan
